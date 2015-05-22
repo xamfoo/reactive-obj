@@ -1,0 +1,21 @@
+<head>
+  <title>reactiveObj</title>
+</head>
+
+<body>
+  {{> state}}
+</body>
+
+<template name="state">
+  <button class="js-restockJohn">Restock John</button>
+  <button class="js-restockAlice">Restock Alice</button>
+  <button class="js-clearStock">Clear stock</button>
+  <h4>All rendered: {{renderAll}}</h4>
+  <pre>{{all}}</pre>
+
+  <h4>John rendered: {{renderJohn}}</h4>
+  <pre>{{john}}</pre>
+
+  <h4>Alice rendered: {{renderAlice}}</h4>
+  <pre>{{alice}}</pre>
+</template>
