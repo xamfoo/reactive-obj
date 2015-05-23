@@ -3,19 +3,30 @@
 </head>
 
 <body>
+  <p>Example from:
+    <a href="https://github.com/xamfoo/reactive-obj">
+      https://github.com/xamfoo/reactive-obj
+    </a>
+  </p>
   {{> state}}
 </body>
 
 <template name="state">
-  <button class="js-restockJohn">Restock John</button>
-  <button class="js-restockAlice">Restock Alice</button>
-  <button class="js-clearStock">Clear stock</button>
-  <h4>All rendered: {{renderAll}}</h4>
+  <button class="js-restockJohn">Give John a fruit</button>
+  <button class="js-restockAlice">Give Alice a fruit</button>
+  <button class="js-clearStock">Clear fruits</button>
+  <ul>
+    <li><em>state</em> is a single reactive object.</li>
+    <li>Changes to <em>john</em> should not affect reactive dependencies on
+      <em>alice</em> and vice versa.
+    </li>
+  </ul>
+  <h4>state rendered: {{renderAll}}</h4>
   <pre>{{all}}</pre>
 
-  <h4>John rendered: {{renderJohn}}</h4>
+  <h4>state.owners.john rendered: {{renderJohn}}</h4>
   <pre>{{john}}</pre>
 
-  <h4>Alice rendered: {{renderAlice}}</h4>
+  <h4>state.owners.alice rendered: {{renderAlice}}</h4>
   <pre>{{alice}}</pre>
 </template>
