@@ -22,7 +22,7 @@ var print = Tracker.autorun(function () {
 });
 state.set(['a', 'x'], 2); // Nothing printed
 state.set(['a', 'b', 'c'], 42); // {c: 42}
-state.get('a'); // {a: {b: {c: 42}, x: 2}}
+state.get('a'); // {b: {c: 42}, x: 2}
 ```
 
 ### Demo
