@@ -144,3 +144,13 @@ Tinytest.add('Empty nodes in deps are cleaned up when removed', function (test) 
 
   test.equal(JSON.stringify(x._deps), depState);
 });
+
+Tinytest.add('Transform function is used when specified', function (test) {
+  var count = 0;
+  var x = new ReactiveObj({a: 1}, {
+    transform: function (v) { count+=1; return v; }
+  });
+
+  test.equal(x.get('a'), 1);
+  test.equal(count > 0, true);
+});
