@@ -2,7 +2,7 @@
 
 Meteor reactivity for nested objects.
 
-[![Build Status](https://secure.travis-ci.org/xamfoo/reactive-obj.svg)](http://travis-ci.org/xamfoo/reactive-obj)
+[![Build Status](https://travis-ci.org/xamfoo/reactive-obj.svg?branch=master)](https://travis-ci.org/xamfoo/reactive-obj)
 
 ## Install
 
