@@ -25,6 +25,10 @@ state.set(['a', 'b', 'c'], 42); // {c: 42}
 state.get('a'); // {a: {b: {c: 42}, x: 2}}
 ```
 
+### Demo
+
+- [Simple example](http://reactiveobj.meteor.com) - Demonstrates reactivity on nested properties ([*source*](examples/simple/))
+
 ## Usage
 
 ### `new ReactiveObj([initialValue])`
