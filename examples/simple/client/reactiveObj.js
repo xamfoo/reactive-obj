@@ -1,12 +1,7 @@
 state = new ReactiveObj({
   owners: {
-    john: {
-      apple: 1,
-      banana: 2
-    },
-    alice: {
-      pear: 1
-    }
+    john: {},
+    alice: {}
   }
 });
 
