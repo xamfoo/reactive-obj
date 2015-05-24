@@ -201,6 +201,37 @@ _.extend(ReactiveObj.prototype, {
     return self;
   },
 
+  update: function (keyPath, valIfNotSet, updater) {
+    var self = this;
+    var useNotSetVal = true;
+    var write = {};
+    var oldVal, newVal;
+    keyPath = self._matchKeyPath(keyPath);
+    if (arguments.length < 2) throw new Error('Insufficient arguments');
+    else if (arguments.length === 2) {
+      updater = valIfNotSet;
+      useNotSetVal = false;
+    }
+    if (typeof updater !== 'function')
+      throw new Error('Invalid or missing updater function');
+
+    oldVal = self._visitPath(self._obj, keyPath);
+    if (oldVal === NOTSET) {
+      if (useNotSetVal) write.value = valIfNotSet;
+    }
+    else {
+      newVal = updater(oldVal);
+      if (oldVal !== newVal) write.value = newVal;
+    }
+
+    if ('value' in write) {
+      self._obj = self._copyOnWrite(self._obj, keyPath, write.value);
+      self.invalidate(keyPath);
+    }
+
+    return self;
+  },
+
   invalidate: function (keyPath) {
     var self = this;
 
