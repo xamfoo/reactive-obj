@@ -161,3 +161,9 @@ Tinytest.add('Update existing value', function (test) {
   test.equal(x.get('a'), 21);
 });
 
+Tinytest.add('Get value if not set', function (test) {
+  var x = new ReactiveObj({a: 1});
+
+  test.equal(x.get('a'), 1);
+  test.equal(x.get('b', 2), 2);
+});
