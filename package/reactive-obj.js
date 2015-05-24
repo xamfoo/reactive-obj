@@ -33,6 +33,31 @@ _.extend(ReactiveObj.prototype, {
     return NOTSET;
   },
 
+  // Shallow clone an object with new value at the path
+  _copyOnWrite: function (node, path, value) {
+    var prevNode = node;
+    var newNode = {};
+    var currentNode = newNode;
+    var currentKey, currentValue;
+
+    for (var i=0, l=path.length-1; i<=l; i+=1) {
+      currentKey = path[i];
+      if (i === l) currentValue = value;
+      else {
+        if (prevNode[currentKey] instanceof Array) currentValue = [];
+        else currentValue = {};
+      }
+
+      if (prevNode) _.extend(currentNode, _.omit(prevNode, currentKey));
+
+      currentNode[currentKey] = currentValue;
+      currentNode = currentNode[currentKey];
+      if (prevNode) prevNode = prevNode[currentKey];
+    }
+
+    return newNode;
+  },
+
   _valueFromPath: function (keyPath) {
     var self = this;
     if (!keyPath || !(keyPath instanceof Array)) return;
