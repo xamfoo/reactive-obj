@@ -340,7 +340,7 @@ _.extend(ReactiveObj.prototype, {
 
     for (var i=0, l=depKeys.length, d; i<l; i+=1) {
       d = deps[depKeys[i]];
-      if (val !== d.lastVal) d.comp.invalidate();
+      if (!('lastVal' in d) || val !== d.lastVal) d.comp.invalidate();
     };
   }
 });
