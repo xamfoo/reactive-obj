@@ -215,7 +215,7 @@ _.extend(ReactiveObj.prototype, {
       if (useNotSetVal) write.value = valIfNotSet;
     }
     else {
-      newVal = updater(oldVal);
+      newVal = updater(self._transform ? self._transform(oldVal) : oldVal);
       if (oldVal !== newVal) write.value = newVal;
     }
 
