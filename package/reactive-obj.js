@@ -242,6 +242,41 @@ _.extend(ReactiveObj.prototype, {
     self._willInvalidate.push(keyPath);
   },
 
+  forceInvalidate: function (keyPath, options) {
+    var self = this;
+    var path, lastNode;
+    keyPath = self._matchKeyPath(keyPath);
+    path = self._keyPathToDepPath(keyPath);
+    options = options || {};
+
+    self._visitPath(self._deps, path, function (context) {
+      self._resetDeps(context.node.deps, options.all);
+      lastNode = context.node;
+    });
+
+    if (lastNode)
+      self._traverse(lastNode, function (nodeDes) {
+        self._resetDeps(nodeDes.node.deps, options.all);
+        return nodeDes.node.children;
+      });
+
+    self.invalidate(keyPath);
+  },
+
+  _resetDeps: function (deps, resetAll) {
+    var depKeys = _.keys(deps);
+
+    for (var i=0, l=depKeys.length, d, t; i<l; i+=1) {
+      d = deps[depKeys[i]];
+      if (resetAll) delete d.lastVal;
+      else {
+        t = typeof d.lastVal;
+        if ((d.lastVal !== null && t === 'object') || t === 'function')
+          delete d.lastVal;
+      }
+    };
+  },
+
   _makePathTree: function (pathArr) {
     return _.chain(pathArr)
     .sortBy(function (keyPath) { return keyPath.length; })
