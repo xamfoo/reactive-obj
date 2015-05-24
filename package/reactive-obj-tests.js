@@ -42,7 +42,7 @@ Tinytest.add('Replace nested nodes', function (test) {
 Tinytest.add('Root node getter is reactive', function (test) {
   var obj = {a: 1};
   var num = 1;
-  var count = 1;
+  var count = 0;
   var x = new ReactiveObj(obj);
 
   var c = Tracker.autorun(function () {
@@ -65,7 +65,7 @@ Tinytest.add('Root node getter is reactive', function (test) {
 Tinytest.add('Nested node getter is reactive', function (test) {
   var obj = {a: {b: 1}};
   var num = 1;
-  var count = 1;
+  var count = 0;
   var x = new ReactiveObj(obj);
 
   var c = Tracker.autorun(function () {
@@ -141,6 +141,5 @@ Tinytest.add('Empty nodes in deps are cleaned up when removed', function (test) 
   c.stop();
 
   Tracker.flush();
-
   test.equal(JSON.stringify(x._deps), depState);
 });
