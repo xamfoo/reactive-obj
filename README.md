@@ -69,7 +69,6 @@ the key does not exist. Establishes a reactive dependency on the property.
   level object. `['fruits', 'apple']` is a valid keypath, which is analogous to
   `somevar['fruits']['apple']`.
 - `valueIfNotSet` *Any*
-  - `valueIfNotSet` is not provided to guarantee the key was not found.
 
 Beware of mutating the returned value as it changes the stored object without
 triggering reactivity. A way to avoid this is to specify a `transform`
@@ -116,6 +115,7 @@ Update the value at this keypath with the return value of calling `updater`
 with the existing value or `valueIfNotSet` if the key was not set.
 
 - `keyPath` *Array of String*
+- `valueIfNotSet` *Any*
 - `updater` *Function*
 
 Beware of mutating the returned value as it changes the stored object without
@@ -159,8 +159,8 @@ new ReactiveVar({
   propN: ..
 }, equalsFunc);
 ```
-Every time one of the property is changed,
 
+Every time one of the property is changed,
 - `equalsFunc` usually needs to check every property. This will take time if
 there are a lot of nested properties.
 - Every reactive dependent on the variable is invalidated. This will also
@@ -182,6 +182,7 @@ better way.
 
 Not all structures can be deep cloned easily. It is tricky to clone custom
 types, functions and structures containing circular references. But if your
-structure is simple, specifying in `JSON.parse(JSON.stringify(value))` or
-`EJSON.clone` in the `transform` option will do the job.
+structure is simple, specifying a function containing
+`JSON.parse(JSON.stringify(value))` or `EJSON.clone` in the `transform` option
+will do the job.
 
