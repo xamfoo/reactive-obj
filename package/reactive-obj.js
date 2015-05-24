@@ -7,6 +7,14 @@ ReactiveObj = function (initialValue) {
 };
 _.extend(ReactiveObj.prototype, {
 
+  _matchKeyPath: function (keyPath) {
+    if (typeof keyPath === 'string') keyPath = [keyPath];
+    else if (typeof keyPath === 'undefined') keyPath = [];
+    else if (!(keyPath instanceof Array)) throw new Error('Invalid keypath');
+
+    return keyPath;
+  },
+
   _valueFromPath: function (keyPath) {
     var self = this;
     if (!keyPath || !(keyPath instanceof Array)) return;
