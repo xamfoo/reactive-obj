@@ -1,3 +1,5 @@
+var NOTSET = {};
+
 ReactiveObj = function (initialValue) {
   var self = this;
   self._obj = typeof initialValue === 'object' ? initialValue : {};
