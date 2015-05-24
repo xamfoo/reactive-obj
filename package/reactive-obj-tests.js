@@ -143,3 +143,21 @@ Tinytest.add('Empty nodes in deps are cleaned up when removed', function (test) 
   Tracker.flush();
   test.equal(JSON.stringify(x._deps), depState);
 });
+
+Tinytest.add('Update value if not set', function (test) {
+  var x = new ReactiveObj({a: 1});
+
+  x.update('b', 2, function () {});
+  test.equal(x.get('b'), 2);
+});
+
+Tinytest.add('Update existing value', function (test) {
+  var x = new ReactiveObj({a: 1});
+
+  x.update('a', function (v) { return v + 10; });
+  test.equal(x.get('a'), 11);
+
+  x.update('a', 13, function (v) { return v + 10; });
+  test.equal(x.get('a'), 21);
+});
+
