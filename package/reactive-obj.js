@@ -1,11 +1,15 @@
 var NOTSET = {};
 
-ReactiveObj = function (initialValue) {
+ReactiveObj = function (initialValue, options) {
   var self = this;
   self._obj = typeof initialValue === 'object' ? initialValue : {};
   self._deps = {children: {}, deps: {}};
   self._willInvalidate = [];
   self._willCleanDeps = [];
+
+  if (!options) return;
+  if (typeof options.transform === 'function')
+    self._transform = options.transform;
 };
 _.extend(ReactiveObj.prototype, {
 
@@ -165,7 +169,8 @@ _.extend(ReactiveObj.prototype, {
       });
     }
 
-    return value === NOTSET ? valueIfNotSet : value;
+    if (value === NOTSET) return valueIfNotSet;
+    return self._transform ? self._transform(value) : value;
   },
 
   set: function (keyPath, value) {

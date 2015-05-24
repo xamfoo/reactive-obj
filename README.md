@@ -31,13 +31,29 @@ state.get('a'); // {b: {c: 42}, x: 2}
 
 ## Usage
 
-### `new ReactiveObj([initialValue])`
+### `new ReactiveObj([initialValue], [options])`
 
 Constructor for a single reactive object.
 
 - `initialValue` *Object*
   - Initial value to set. If no value is provided, it defaults to an empty
   object.
+- `options` *Object*
+  - `transform` *Function*
+    - Specify a transform function for all values returned via get. `transform`
+    should take a single argument value and return the new value.
+
+Example of a transform function:
+```javascript
+var state = new ReactiveObj({}, {
+  transform: function (value) {
+    return EJSON.clone(value); // cloning prevents changes to original value
+  }
+});
+state.set('a', {x: 1});
+state.get('a').x = 2;
+state.get(['a', 'x']); // Returns 1
+```
 
 ----
 
