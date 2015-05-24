@@ -154,12 +154,12 @@ _.extend(ReactiveObj.prototype, {
     self._willCleanDeps = [];
   },
 
-  get: function (keyPath) {
+  get: function (keyPath, valueIfNotSet) {
     var self = this;
     var computation, id, value;
     keyPath = self._matchKeyPath(keyPath);
 
-    value = self._valueFromPath(keyPath);
+    value = self._visitPath(self._obj, keyPath);
 
     if (Tracker.active) {
       computation = Tracker.currentComputation;
@@ -175,7 +175,7 @@ _.extend(ReactiveObj.prototype, {
       });
     }
 
-    return value;
+    return value === NOTSET ? valueIfNotSet : value;
   },
 
   set: function (keyPath, value) {
