@@ -50,8 +50,7 @@ function restock (person) {
 function clearStock () {
   _.each(state.get('owners'), function (v, k) {
     var path = ['owners', k];
-    var oldVal = state.get(path);
-    state.set(path, _.size(oldVal) === 0 ? oldVal : {});
+    state.update(path, function (v) { return _.size(v) === 0 ? v : {}; });
   });
 }
 
