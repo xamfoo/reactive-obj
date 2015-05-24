@@ -180,48 +180,25 @@ _.extend(ReactiveObj.prototype, {
 
   set: function (keyPath, value) {
     var self = this;
-    var oldState = self._obj;
-    var newState = {};
-    var currentState = newState;
-    var currentKey, currentValue;
+    var newState, noop;
     if (arguments.length < 2) throw new Error("No value to set");
     keyPath = self._matchKeyPath(keyPath);
 
     // Replace root node
-    if (!keyPath.length) {
-      self._obj = value;
-      return newState;
-    }
+    if (!keyPath.length) newState = value;
 
     // If value assigned is the same as the old value, it is a noop
-    for (var i=0, l=keyPath.length - 1, s=self._obj; i<=l; i+=1) {
-      if (typeof s === 'object' && keyPath[i] in s) {
-        s = s[keyPath[i]];
-        if (i === l && s === value) return self._obj;
-      }
-      else break;
-    }
+    noop = self._visitPath(self._obj, keyPath, function (context) {
+      if (context.value === value) return true;
+    });
+    if (noop === true) return self;
 
-    // Make a new object based on the new state
-    for (var i=0, l=keyPath.length-1; i<=l; i+=1) {
-      currentKey = keyPath[i];
-      if (i === l) currentValue = value;
-      else {
-        if (oldState[currentKey] instanceof Array) currentValue = [];
-        else currentValue = {};
-      }
+    // Replace state
+    self._obj = newState || self._copyOnWrite(self._obj, keyPath, value);
 
-      if (oldState) _.extend(currentState, _.omit(oldState, currentKey));
-
-      currentState[currentKey] = currentValue;
-      currentState = currentState[currentKey];
-      if (oldState) oldState = oldState[currentKey];
-    }
-
-    self._obj = newState;
     self.invalidate(keyPath);
 
-    return newState;
+    return self;
   },
 
   invalidate: function (keyPath) {
