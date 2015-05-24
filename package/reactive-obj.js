@@ -33,7 +33,7 @@ _.extend(ReactiveObj.prototype, {
       return typeof visitor !== 'function' ? s : visitor({
         node: lastS,
         value: s,
-        key: keyPath[i]
+        key: keyPath[i - 1]
       });
 
     return NOTSET;
@@ -311,26 +311,15 @@ _.extend(ReactiveObj.prototype, {
 
   _invalidateComputation: function (keyPath, invalidateChildren) {
     var self = this;
-    var keyPathPtr = 0;
+    var path = ['children'];
     var lastNode;
 
-    self._traverse(self._deps, function (nodeDes) {
-      var node = nodeDes.node;
-      var newNodes, currentKey, nextNode;
-      if (keyPath.length === keyPathPtr) {
-        self._invalidatePathDeps(keyPath, nodeDes.node.deps);
-        lastNode = nodeDes.node;
-      }
-      else if (keyPath.length > 0) {
-        newNodes = {};
-        currentKey = keyPath[keyPathPtr];
-        nextNode = node.children[currentKey];
-        if (nextNode) newNodes[currentKey] = nextNode;
-
-        keyPathPtr += 1;
-
-        return newNodes;
-      }
+    _.reduce(keyPath, function (acc, v) {
+      acc.push(v, 'children'); return acc;
+    }, path);
+    self._visitPath(self._deps, path, function (context) {
+      self._invalidatePathDeps(keyPath, context.node.deps);
+      lastNode = context.node;
     });
 
     if (lastNode && invalidateChildren)
