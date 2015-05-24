@@ -123,6 +123,7 @@ Tinytest.add('Reactivity is triggered only upon flush', function (test) {
   x.set('a', 1);
 
   test.equal(count, 2);
+  c.stop();
 });
 
 Tinytest.add('Empty nodes in deps are cleaned up when removed', function (test) {
@@ -180,3 +181,56 @@ Tinytest.add('Transform function is used when specified', function (test) {
   test.equal(x.update('a', function (v) { return v; }), x);
   test.equal(count, 2);
 });
+
+Tinytest.add('Force invalidate', function (test) {
+  var count0 = 0;
+  var count1 = 0;
+  var count2 = 0;
+  var count3 = 0;
+  var bc = {b: 1, c: 2};
+  var a = {a: bc};
+  var x = new ReactiveObj(a);
+  var c0 = Tracker.autorun(function () {
+    test.equal(x.get(), a);
+    count0 += 1;
+  });
+  var c1 = Tracker.autorun(function () {
+    test.equal(x.get('a'), bc);
+    count1 += 1;
+  });
+  var c2 = Tracker.autorun(function () {
+    test.equal(x.get(['a', 'b']), 1);
+    count2 += 1;
+  });
+  var c3 = Tracker.autorun(function () {
+    test.equal(x.get(['a', 'c']), 2);
+    count3 += 1;
+  });
+
+  x.forceInvalidate();
+  Tracker.flush();
+  test.equal(count0, 2);
+  test.equal(count1, 2);
+  test.equal(count2, 1);
+  test.equal(count3, 1);
+
+  x.forceInvalidate('a', {all: true});
+  Tracker.flush();
+  test.equal(count0, 2);
+  test.equal(count1, 3);
+  test.equal(count2, 2);
+  test.equal(count3, 2);
+
+  x.forceInvalidate(['a', 'b'], {all: true});
+  Tracker.flush();
+  test.equal(count0, 2);
+  test.equal(count1, 3);
+  test.equal(count2, 3);
+  test.equal(count3, 2);
+
+  c0.stop();
+  c1.stop();
+  c2.stop();
+  c3.stop();
+});
+
