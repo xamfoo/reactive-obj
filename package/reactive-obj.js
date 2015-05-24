@@ -60,18 +60,6 @@ _.extend(ReactiveObj.prototype, {
     return newNode;
   },
 
-  _valueFromPath: function (keyPath) {
-    var self = this;
-    if (!keyPath || !(keyPath instanceof Array)) return;
-    if (keyPath instanceof Array && !keyPath.length) return self._obj;
-
-    for (var i=0, l=keyPath.length, s=self._obj; i<l; i+=1) {
-      if (keyPath[i] in s) s = s[keyPath[i]];
-      else return;
-    }
-    return s;
-  },
-
   _addDep: function (opt) {
     var self = this;
     var currentNode = self._deps;
