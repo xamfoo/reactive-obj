@@ -309,14 +309,19 @@ _.extend(ReactiveObj.prototype, {
     });
   },
 
+  _keyPathToDepPath: function (keyPath) {
+    var path = ['children'];
+    for (var i=0, l=keyPath.length; i<l; i+=1) {
+      path.push(keyPath[i], 'children');
+    }
+    return path;
+  },
+
   _invalidateComputation: function (keyPath, invalidateChildren) {
     var self = this;
-    var path = ['children'];
+    var path = self._keyPathToDepPath(keyPath);
     var lastNode;
 
-    _.reduce(keyPath, function (acc, v) {
-      acc.push(v, 'children'); return acc;
-    }, path);
     self._visitPath(self._deps, path, function (context) {
       self._invalidatePathDeps(keyPath, context.node.deps);
       lastNode = context.node;
