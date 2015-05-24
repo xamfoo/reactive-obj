@@ -157,9 +157,7 @@ _.extend(ReactiveObj.prototype, {
   get: function (keyPath) {
     var self = this;
     var computation, id, value;
-    if (typeof keyPath === 'string') keyPath = [keyPath];
-    else if (typeof keyPath === 'undefined') keyPath = [];
-    else if (!(keyPath instanceof Array)) throw new Error('Invalid key path');
+    keyPath = self._matchKeyPath(keyPath);
 
     value = self._valueFromPath(keyPath);
 
@@ -187,9 +185,7 @@ _.extend(ReactiveObj.prototype, {
     var currentState = newState;
     var currentKey, currentValue;
     if (arguments.length < 2) throw new Error("No value to set");
-    if (typeof keyPath === 'string') keyPath = [keyPath];
-    else if (typeof keyPath === 'undefined') keyPath = [];
-    else if (!(keyPath instanceof Array)) throw new Error('Invalid key path');
+    keyPath = self._matchKeyPath(keyPath);
 
     // Replace root node
     if (!keyPath.length) {
