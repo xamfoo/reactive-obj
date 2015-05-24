@@ -42,7 +42,7 @@ Tinytest.add('Replace nested nodes', function (test) {
 Tinytest.add('Root node getter is reactive', function (test) {
   var obj = {a: 1};
   var num = 1;
-  var count = 1;
+  var count = 0;
   var x = new ReactiveObj(obj);
 
   var c = Tracker.autorun(function () {
@@ -65,7 +65,7 @@ Tinytest.add('Root node getter is reactive', function (test) {
 Tinytest.add('Nested node getter is reactive', function (test) {
   var obj = {a: {b: 1}};
   var num = 1;
-  var count = 1;
+  var count = 0;
   var x = new ReactiveObj(obj);
 
   var c = Tracker.autorun(function () {
@@ -141,6 +141,42 @@ Tinytest.add('Empty nodes in deps are cleaned up when removed', function (test) 
   c.stop();
 
   Tracker.flush();
-
   test.equal(JSON.stringify(x._deps), depState);
+});
+
+Tinytest.add('Update value if not set', function (test) {
+  var x = new ReactiveObj({a: 1});
+
+  x.update('b', 2, function () {});
+  test.equal(x.get('b'), 2);
+});
+
+Tinytest.add('Update existing value', function (test) {
+  var x = new ReactiveObj({a: 1});
+
+  x.update('a', function (v) { return v + 10; });
+  test.equal(x.get('a'), 11);
+
+  x.update('a', 13, function (v) { return v + 10; });
+  test.equal(x.get('a'), 21);
+});
+
+Tinytest.add('Get value if not set', function (test) {
+  var x = new ReactiveObj({a: 1});
+
+  test.equal(x.get('a'), 1);
+  test.equal(x.get('b', 2), 2);
+});
+
+Tinytest.add('Transform function is used when specified', function (test) {
+  var count = 0;
+  var x = new ReactiveObj({a: 1}, {
+    transform: function (v) { count+=1; return v; }
+  });
+
+  test.equal(x.get('a'), 1);
+  test.equal(count, 1);
+
+  test.equal(x.update('a', function (v) { return v; }), x);
+  test.equal(count, 2);
 });

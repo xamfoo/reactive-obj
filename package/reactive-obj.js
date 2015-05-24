@@ -1,22 +1,67 @@
-ReactiveObj = function (initialValue) {
+var NOTSET = {};
+
+ReactiveObj = function (initialValue, options) {
   var self = this;
   self._obj = typeof initialValue === 'object' ? initialValue : {};
   self._deps = {children: {}, deps: {}};
   self._willInvalidate = [];
   self._willCleanDeps = [];
+
+  if (!options) return;
+  if (typeof options.transform === 'function')
+    self._transform = options.transform;
 };
 _.extend(ReactiveObj.prototype, {
 
-  _valueFromPath: function (keyPath) {
-    var self = this;
-    if (!keyPath || !(keyPath instanceof Array)) return;
-    if (keyPath instanceof Array && !keyPath.length) return self._obj;
+  _matchKeyPath: function (keyPath) {
+    if (typeof keyPath === 'string') keyPath = [keyPath];
+    else if (typeof keyPath === 'undefined') keyPath = [];
+    else if (!(keyPath instanceof Array)) throw new Error('Invalid keypath');
 
-    for (var i=0, l=keyPath.length, s=self._obj; i<l; i+=1) {
-      if (keyPath[i] in s) s = s[keyPath[i]];
-      else return;
+    return keyPath;
+  },
+
+  _visitPath: function (node, keyPath, visitor) {
+    for (var i=0, l=keyPath.length, s=node, lastS=null; i<l; i+=1) {
+      if (typeof s === 'object' && keyPath[i] in s) {
+        lastS = s;
+        s = s[keyPath[i]];
+      }
+      else break;
     }
-    return s;
+    if (i === l || !keyPath.length)
+      return typeof visitor !== 'function' ? s : visitor({
+        node: lastS,
+        value: s,
+        key: keyPath[i]
+      });
+
+    return NOTSET;
+  },
+
+  // Shallow clone an object with new value at the path
+  _copyOnWrite: function (node, path, value) {
+    var prevNode = node;
+    var newNode = {};
+    var currentNode = newNode;
+    var currentKey, currentValue;
+
+    for (var i=0, l=path.length-1; i<=l; i+=1) {
+      currentKey = path[i];
+      if (i === l) currentValue = value;
+      else {
+        if (prevNode[currentKey] instanceof Array) currentValue = [];
+        else currentValue = {};
+      }
+
+      if (prevNode) _.extend(currentNode, _.omit(prevNode, currentKey));
+
+      currentNode[currentKey] = currentValue;
+      currentNode = currentNode[currentKey];
+      if (prevNode) prevNode = prevNode[currentKey];
+    }
+
+    return newNode;
   },
 
   _addDep: function (opt) {
@@ -103,14 +148,12 @@ _.extend(ReactiveObj.prototype, {
     self._willCleanDeps = [];
   },
 
-  get: function (keyPath) {
+  get: function (keyPath, valueIfNotSet) {
     var self = this;
     var computation, id, value;
-    if (typeof keyPath === 'string') keyPath = [keyPath];
-    else if (typeof keyPath === 'undefined') keyPath = [];
-    else if (!(keyPath instanceof Array)) throw new Error('Invalid key path');
+    keyPath = self._matchKeyPath(keyPath);
 
-    value = self._valueFromPath(keyPath);
+    value = self._visitPath(self._obj, keyPath);
 
     if (Tracker.active) {
       computation = Tracker.currentComputation;
@@ -126,55 +169,62 @@ _.extend(ReactiveObj.prototype, {
       });
     }
 
-    return value;
+    if (value === NOTSET) return valueIfNotSet;
+    return self._transform ? self._transform(value) : value;
   },
 
   set: function (keyPath, value) {
     var self = this;
-    var oldState = self._obj;
-    var newState = {};
-    var currentState = newState;
-    var currentKey, currentValue;
+    var newState, noop;
     if (arguments.length < 2) throw new Error("No value to set");
-    if (typeof keyPath === 'string') keyPath = [keyPath];
-    else if (typeof keyPath === 'undefined') keyPath = [];
-    else if (!(keyPath instanceof Array)) throw new Error('Invalid key path');
+    keyPath = self._matchKeyPath(keyPath);
 
     // Replace root node
-    if (!keyPath.length) {
-      self._obj = value;
-      return newState;
-    }
+    if (!keyPath.length) newState = value;
 
     // If value assigned is the same as the old value, it is a noop
-    for (var i=0, l=keyPath.length - 1, s=self._obj; i<=l; i+=1) {
-      if (typeof s === 'object' && keyPath[i] in s) {
-        s = s[keyPath[i]];
-        if (i === l && s === value) return self._obj;
-      }
-      else break;
-    }
+    noop = self._visitPath(self._obj, keyPath, function (context) {
+      if (context.value === value) return true;
+    });
+    if (noop === true) return self;
 
-    // Make a new object based on the new state
-    for (var i=0, l=keyPath.length-1; i<=l; i+=1) {
-      currentKey = keyPath[i];
-      if (i === l) currentValue = value;
-      else {
-        if (oldState[currentKey] instanceof Array) currentValue = [];
-        else currentValue = {};
-      }
+    // Replace state
+    self._obj = newState || self._copyOnWrite(self._obj, keyPath, value);
 
-      if (oldState) _.extend(currentState, _.omit(oldState, currentKey));
-
-      currentState[currentKey] = currentValue;
-      currentState = currentState[currentKey];
-      if (oldState) oldState = oldState[currentKey];
-    }
-
-    self._obj = newState;
     self.invalidate(keyPath);
 
-    return newState;
+    return self;
+  },
+
+  update: function (keyPath, valIfNotSet, updater) {
+    var self = this;
+    var useNotSetVal = true;
+    var write = {};
+    var oldVal, newVal;
+    keyPath = self._matchKeyPath(keyPath);
+    if (arguments.length < 2) throw new Error('Insufficient arguments');
+    else if (arguments.length === 2) {
+      updater = valIfNotSet;
+      useNotSetVal = false;
+    }
+    if (typeof updater !== 'function')
+      throw new Error('Invalid or missing updater function');
+
+    oldVal = self._visitPath(self._obj, keyPath);
+    if (oldVal === NOTSET) {
+      if (useNotSetVal) write.value = valIfNotSet;
+    }
+    else {
+      newVal = updater(self._transform ? self._transform(oldVal) : oldVal);
+      if (oldVal !== newVal) write.value = newVal;
+    }
+
+    if ('value' in write) {
+      self._obj = self._copyOnWrite(self._obj, keyPath, write.value);
+      self.invalidate(keyPath);
+    }
+
+    return self;
   },
 
   invalidate: function (keyPath) {
@@ -296,7 +346,9 @@ _.extend(ReactiveObj.prototype, {
   _invalidatePathDeps: function (keyPath, deps) {
     var self = this;
     var depKeys = _.keys(deps);
-    var val = self._valueFromPath(keyPath);
+    var val = self._visitPath(self._obj, keyPath);
+    if (val === NOTSET) val = undefined;
+
     for (var i=0, l=depKeys.length, d; i<l; i+=1) {
       d = deps[depKeys[i]];
       if (val !== d.lastVal) d.comp.invalidate();
