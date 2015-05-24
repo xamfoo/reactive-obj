@@ -351,7 +351,9 @@ _.extend(ReactiveObj.prototype, {
   _invalidatePathDeps: function (keyPath, deps) {
     var self = this;
     var depKeys = _.keys(deps);
-    var val = self._valueFromPath(keyPath);
+    var val = self._visitPath(self._obj, keyPath);
+    if (val === NOTSET) val = undefined;
+
     for (var i=0, l=depKeys.length, d; i<l; i+=1) {
       d = deps[depKeys[i]];
       if (val !== d.lastVal) d.comp.invalidate();
