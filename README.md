@@ -27,7 +27,8 @@ state.get('a'); // {b: {c: 42}, x: 2}
 
 ### Demo
 
-- [Simple example](http://reactiveobj.meteor.com) - Demonstrates reactivity on nested properties ([*source*](examples/simple/))
+- [Simple example](http://reactiveobj.meteor.com) - Demonstrates reactivity on
+nested properties ([*source*](examples/simple/))
 
 ## Usage
 
@@ -131,4 +132,56 @@ x.update('b', 0, inc);
 x.get('a'); // 2
 x.get('b'); // 0
 ```
+
+## Discussion
+
+#### Why use this instead of Session, ReactiveVar or ReactiveDict?
+
+It is quite common to maintain application state and namespaces in deep
+structures. It is nice to be able to make those structures reactive as well.
+
+While the mentioned packages are good for maintaining reactive keys and values,
+they are currently not very efficient when dealing with nested structures.
+
+For example if we declare the following `ReactiveVar`,
+```javascript
+new ReactiveVar({
+  prop1: {
+    prop11: {
+      prop111: ..
+    }
+  },
+  prop2: ..,
+  prop3: {
+    prop31: ..
+  },
+  ..
+  propN: ..
+}, equalsFunc);
+```
+Every time one of the property is changed,
+
+- `equalsFunc` usually needs to check every property. This will take time if
+there are a lot of nested properties.
+- Every reactive dependent on the variable is invalidated. This will also
+take time if there are many reactive dependents.
+
+However `ReactiveObj` is created with nested objects in mind. So if a property
+is changed,
+
+- Only the changed property is checked.
+- Only reactive dependents on the changed property is invalidated.
+- In addition, all changes and invalidations are batched so that multiple
+changes on on the same property will only result in a single check and
+invalidation.
+
+All things said, the Meteor scene changes quickly so let me know if there is a
+better way.
+
+#### Why doesn't `get` and `update` return cloned objects by default?
+
+Not all structures can be deep cloned easily. It is tricky to clone custom
+types, functions and structures containing circular references. But if your
+structure is simple, specifying in `JSON.parse(JSON.stringify(value))` or
+`EJSON.clone` in the `transform` option will do the job.
 
