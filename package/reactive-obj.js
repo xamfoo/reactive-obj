@@ -15,6 +15,24 @@ _.extend(ReactiveObj.prototype, {
     return keyPath;
   },
 
+  _visitPath: function (node, keyPath, visitor) {
+    for (var i=0, l=keyPath.length, s=node, lastS=null; i<l; i+=1) {
+      if (typeof s === 'object' && keyPath[i] in s) {
+        lastS = s;
+        s = s[keyPath[i]];
+      }
+      else break;
+    }
+    if (i === l || !keyPath.length)
+      return typeof visitor !== 'function' ? s : visitor({
+        node: lastS,
+        value: s,
+        key: keyPath[i]
+      });
+
+    return NOTSET;
+  },
+
   _valueFromPath: function (keyPath) {
     var self = this;
     if (!keyPath || !(keyPath instanceof Array)) return;
