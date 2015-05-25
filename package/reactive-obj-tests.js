@@ -214,14 +214,14 @@ Tinytest.add('Force invalidate', function (test) {
   test.equal(count2, 1);
   test.equal(count3, 1);
 
-  x.forceInvalidate('a', {all: true});
+  x.forceInvalidate('a', {allTypes: true});
   Tracker.flush();
   test.equal(count0, 2);
   test.equal(count1, 3);
   test.equal(count2, 2);
   test.equal(count3, 2);
 
-  x.forceInvalidate(['a', 'b'], {all: true});
+  x.forceInvalidate(['a', 'b'], {allTypes: true});
   Tracker.flush();
   test.equal(count0, 2);
   test.equal(count1, 3);
