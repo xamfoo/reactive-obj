@@ -234,3 +234,40 @@ Tinytest.add('Force invalidate', function (test) {
   c3.stop();
 });
 
+Tinytest.add('Force invalidate without children', function (test) {
+  var count0 = 0;
+  var count1 = 0;
+  var count2 = 0;
+  var c = {c: 1}
+  var b = {b: c};
+  var a = {a: b};
+  var x = new ReactiveObj(a);
+  var c0 = Tracker.autorun(function () {
+    test.equal(x.get(), a);
+    count0 += 1;
+  });
+  var c1 = Tracker.autorun(function () {
+    test.equal(x.get('a'), b);
+    count1 += 1;
+  });
+  var c2 = Tracker.autorun(function () {
+    test.equal(x.get(['a', 'b']), c);
+    count2 += 1;
+  });
+
+  x.forceInvalidate([], {noChildren: true});
+  Tracker.flush();
+  test.equal(count0, 2);
+  test.equal(count1, 1);
+  test.equal(count2, 1);
+
+  x.forceInvalidate('a', {noChildren: true});
+  Tracker.flush();
+  test.equal(count0, 2);
+  test.equal(count1, 2);
+  test.equal(count2, 1);
+
+  c0.stop();
+  c1.stop();
+  c2.stop();
+});
