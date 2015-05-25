@@ -145,10 +145,13 @@ this behavior in `options`.
 
 - `keyPath` *Array of String*
 - `options` *Object*
-  - `allTypes` *Boolean*
+  - `allTypes` *Boolean* (default=false)
     - Setting this `true` will invalidate reactive dependents for any type of
     values, effectively causing all dependents on the value and its children
     to re-run.
+  - `noChildren` *Boolean* (default=false)
+    - Set this to `true` to ignore children dependents, so that only dependents
+    matching the keypath will be invalidated.
 
 Normally one should avoid using `forceInvalidate` and treat values returned
 from `get` and `update` as read-only. This makes the application simpler and
