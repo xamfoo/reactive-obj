@@ -248,13 +248,17 @@ _.extend(ReactiveObj.prototype, {
     keyPath = self._matchKeyPath(keyPath);
     path = self._keyPathToDepPath(keyPath);
     options = options || {};
+    _.defaults(options, {
+      allType: false,
+      noChildren: false
+    });
 
     self._visitPath(self._deps, path, function (context) {
       self._resetDeps(context.node.deps, options.allTypes);
       lastNode = context.node;
     });
 
-    if (lastNode)
+    if (!options.noChildren && lastNode)
       self._traverse(lastNode, function (nodeDes) {
         self._resetDeps(nodeDes.node.deps, options.allTypes);
         return nodeDes.node.children;
