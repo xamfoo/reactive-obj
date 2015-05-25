@@ -33,7 +33,7 @@ _.extend(ReactiveObj.prototype, {
       return typeof visitor !== 'function' ? s : visitor({
         node: lastS,
         value: s,
-        key: keyPath[i]
+        key: keyPath[i - 1]
       });
 
     return NOTSET;
@@ -242,6 +242,41 @@ _.extend(ReactiveObj.prototype, {
     self._willInvalidate.push(keyPath);
   },
 
+  forceInvalidate: function (keyPath, options) {
+    var self = this;
+    var path, lastNode;
+    keyPath = self._matchKeyPath(keyPath);
+    path = self._keyPathToDepPath(keyPath);
+    options = options || {};
+    _.defaults(options, {
+      allType: false,
+      noChildren: false
+    });
+
+    self._visitPath(self._deps, path, function (context) {
+      self._resetDeps(context.node.deps, options.allTypes);
+      lastNode = context.node;
+    });
+
+    if (!options.noChildren && lastNode)
+      self._traverse(lastNode, function (nodeDes) {
+        self._resetDeps(nodeDes.node.deps, options.allTypes);
+        return nodeDes.node.children;
+      });
+
+    self.invalidate(keyPath);
+  },
+
+  _resetDeps: function (deps, allTypes) {
+    var depKeys = _.keys(deps);
+
+    for (var i=0, l=depKeys.length, d; i<l; i+=1) {
+      d = deps[depKeys[i]];
+      if (allTypes) delete d.lastVal;
+      else if (d.lastVal instanceof Object) delete d.lastVal;
+    };
+  },
+
   _makePathTree: function (pathArr) {
     return _.chain(pathArr)
     .sortBy(function (keyPath) { return keyPath.length; })
@@ -309,28 +344,22 @@ _.extend(ReactiveObj.prototype, {
     });
   },
 
+  _keyPathToDepPath: function (keyPath) {
+    var path = ['children'];
+    for (var i=0, l=keyPath.length; i<l; i+=1) {
+      path.push(keyPath[i], 'children');
+    }
+    return path;
+  },
+
   _invalidateComputation: function (keyPath, invalidateChildren) {
     var self = this;
-    var keyPathPtr = 0;
+    var path = self._keyPathToDepPath(keyPath);
     var lastNode;
 
-    self._traverse(self._deps, function (nodeDes) {
-      var node = nodeDes.node;
-      var newNodes, currentKey, nextNode;
-      if (keyPath.length === keyPathPtr) {
-        self._invalidatePathDeps(keyPath, nodeDes.node.deps);
-        lastNode = nodeDes.node;
-      }
-      else if (keyPath.length > 0) {
-        newNodes = {};
-        currentKey = keyPath[keyPathPtr];
-        nextNode = node.children[currentKey];
-        if (nextNode) newNodes[currentKey] = nextNode;
-
-        keyPathPtr += 1;
-
-        return newNodes;
-      }
+    self._visitPath(self._deps, path, function (context) {
+      self._invalidatePathDeps(keyPath, context.node.deps);
+      lastNode = context.node;
     });
 
     if (lastNode && invalidateChildren)
@@ -351,7 +380,7 @@ _.extend(ReactiveObj.prototype, {
 
     for (var i=0, l=depKeys.length, d; i<l; i+=1) {
       d = deps[depKeys[i]];
-      if (val !== d.lastVal) d.comp.invalidate();
+      if (!('lastVal' in d) || val !== d.lastVal) d.comp.invalidate();
     };
   }
 });

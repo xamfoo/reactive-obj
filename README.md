@@ -133,6 +133,40 @@ x.get('a'); // 2
 x.get('b'); // 0
 ```
 
+----
+
+### `reactiveObj.forceInvalidate(keyPath, [options])`
+
+Invalidate reactive dependents on the value and its children specified by
+the keypath. You will need to call this if you mutate values returned by `get`
+or `update` directly. By default, this will only invalidate values which are
+instances of `Object` like arrays, objects and functions. You can override
+this behavior in `options`.
+
+- `keyPath` *Array of String*
+- `options` *Object*
+  - `allTypes` *Boolean* (default=false)
+    - Setting this `true` will invalidate reactive dependents for any type of
+    values, effectively causing all dependents on the value and its children
+    to re-run.
+  - `noChildren` *Boolean* (default=false)
+    - Set this to `true` to ignore children dependents, so that only dependents
+    matching the keypath will be invalidated.
+
+Normally one should avoid using `forceInvalidate` and treat values returned
+from `get` and `update` as read-only. This makes the application simpler and
+more efficient.
+
+Example:
+```javascript
+var state = new ReactiveObj({a: 1}});
+var print = Tracker.autorun(function () {
+  console.log( state.get('a') ); // 1
+});
+state.get().a = 2; // Nothing happens
+state.forceInvalidate(); // Prints 2;
+```
+
 ## Discussion
 
 #### Why use this instead of Session, ReactiveVar or ReactiveDict?
