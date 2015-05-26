@@ -15,7 +15,7 @@ _.extend(ReactiveObj.prototype, {
 
   // Returns a normalized keyPath or throws an error if it is invalid
   _matchKeyPath: function (keyPath) {
-    if (typeof keyPath === 'string') keyPath = [keyPath];
+    if (typeof keyPath === 'string') keyPath = keyPath.split('.');
     else if (typeof keyPath === 'undefined') keyPath = [];
     else if (!(keyPath instanceof Array)) throw new Error('Invalid keypath');
 
