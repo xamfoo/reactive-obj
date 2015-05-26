@@ -232,6 +232,16 @@ _.extend(ReactiveObj.prototype, {
 
     return self;
   },
+
+  setDefault: function (keyPath, valIfNotSet) {
+    var self = this;
+    var value = Tracker.nonreactive(function () {
+      return self.get(keyPath, NOTSET);
+    });
+    if (value === NOTSET) self.set(keyPath, valIfNotSet);
+
+    return self;
+  },
  
   // Breadth first traversal
   _traverse: function (tree, callback) {
