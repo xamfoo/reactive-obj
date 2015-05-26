@@ -4,6 +4,29 @@ Meteor reactivity for nested objects.
 
 [![Build Status](https://travis-ci.org/xamfoo/reactive-obj.svg?branch=master)](https://travis-ci.org/xamfoo/reactive-obj)
 
+## Contents
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+ 
+
+- [Install](#install)
+  - [Dependencies](#dependencies)
+- [Getting Started](#getting-started)
+  - [Demo](#demo)
+- [Usage](#usage)
+  - [`new ReactiveObj([initialValue], [options])`](#new-reactiveobjinitialvalue-options)
+  - [`reactiveObj.get([keyPath])`](#reactiveobjgetkeypath)
+  - [`reactiveObj.equals(keyPath, value)`](#reactiveobjequalskeypath-value)
+  - [`reactiveObj.set(keyPath, value)`](#reactiveobjsetkeypath-value)
+  - [`reactiveObj.setDefault(keyPath, valueIfNotSet)`](#reactiveobjsetdefaultkeypath-valueifnotset)
+  - [`reactiveObj.update(keyPath, [valueIfNotSet], updater)`](#reactiveobjupdatekeypath-valueifnotset-updater)
+  - [`reactiveObj.forceInvalidate(keyPath, [options])`](#reactiveobjforceinvalidatekeypath-options)
+- [Discussion](#discussion)
+    - [Why use this instead of Session, ReactiveVar or ReactiveDict?](#why-use-this-instead-of-session-reactivevar-or-reactivedict)
+    - [Why doesn't `get` and `update` return cloned objects by default?](#why-doesnt-get-and-update-return-cloned-objects-by-default)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Install
 
     meteor add xamfoo:reactive-obj
@@ -56,7 +79,7 @@ state.get('a').x = 2;
 state.get(['a', 'x']); // Returns 1
 ```
 
-----
+<hr>
 
 ### `reactiveObj.get([keyPath])`
 or `reactiveObj.get(keyPath, [valueIfNotSet])`
@@ -155,7 +178,7 @@ x.get('a'); // 2
 x.get('b'); // 0
 ```
 
-----
+<hr>
 
 ### `reactiveObj.forceInvalidate(keyPath, [options])`
 
