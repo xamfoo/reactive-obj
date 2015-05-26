@@ -87,10 +87,10 @@ or `reactiveObj.get(keyPath, [valueIfNotSet])`
 Returns the object's property specified by the keypath, or `valueIfNotSet` if
 the key does not exist. Establishes a reactive dependency on the property.
 
-- `keyPath` *Array of String*
+- `keyPath` *String* or *Array of String*
   - Pointer to a property of an object. If not specified, this returns the top
-  level object. `['fruits', 'apple']` is a valid keypath, which is analogous to
-  `somevar['fruits']['apple']`.
+  level object. `['fruits', 'apple']` and `'fruits.apple'` are equivalent and
+  valid keypaths.
 - `valueIfNotSet` *Any*
 
 Beware of mutating the returned value as it changes the stored object without
@@ -103,10 +103,11 @@ with an `undefined` value.
 
 Example:
 ```javascript
-var x = new ReactiveObj({a: 1});
-x.get('a'); // 1
-x.get(['b', 'c']); // undefined
-x.get('b', 2); // 2
+var x = new ReactiveObj({a: 1, b: [10, 20]});
+x.get('a'); // Returns 1
+x.get(['b', 'c']); // Returns undefined
+x.get('b.1'); // Returns 20
+x.get('c', 2); // Returns 2
 ```
 
 <hr>
