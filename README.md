@@ -41,11 +41,11 @@ Meteor reactivity for nested objects.
 ```javascript
 var state = new ReactiveObj({a: {b: {c: 1}}});
 var print = Tracker.autorun(function () {
-  console.log( state.get(['a', 'b']) ); // {c: 1}
+  console.log( state.get(['a', 'b']) ); // Prints {c: 1}
 });
-state.set(['a', 'x'], 2); // Nothing printed
-state.set(['a', 'b', 'c'], 42); // {c: 42}
-state.get('a'); // {b: {c: 42}, x: 2}
+state.set(['a', 'x'], 2); // Prints nothing
+state.set(['a', 'b', 'c'], 42); // Prints {c: 42}
+state.get('a'); // Returns {b: {c: 42}, x: 2}
 ```
 
 ### Demo
@@ -118,7 +118,7 @@ Returns true if the object's property specified by the keypath is equals to
 the `value` or false if otherwise. Establishes a reactive dependency which is
 invalidated only when the property changes to and from the value.
 
-- `keyPath` *Array of String*
+- `keyPath` *String* or *Array of String*
 - `value` *Any*
 
 <hr>
@@ -129,7 +129,7 @@ Replaces the object's property specified by the keypath and returns the
 `reactiveObj` that can be used for chaining. Properties that do not exist will
 be created.
 
-- `keyPath` *Array of String*
+- `keyPath` *String* or *Array of String*
 - `value` *Any*
   - Value to set
 
@@ -139,7 +139,7 @@ Example:
 ```javascript
 var x = new ReactiveObj;
 x.set(['a', 'b'], 1);
-x.get('a'); // {b: 1}
+x.get('a'); // Returns {b: 1}
 ```
 
 <hr>
@@ -150,7 +150,7 @@ Sets the object's property specified by the keypath if it hasn't been set
 before and returns the `reactiveObj` that can be used for chaining.  Keys in
 the keypath that do not exist will be created.
 
-- `keyPath` *Array of String*
+- `keyPath` *String* or *Array of String*
 - `valueIfNotSet` *Any*
 
 <hr>
@@ -160,7 +160,7 @@ the keypath that do not exist will be created.
 Update the value at this keypath with the return value of calling `updater`
 with the existing value or `valueIfNotSet` if the key was not set.
 
-- `keyPath` *Array of String*
+- `keyPath` *String* or *Array of String*
 - `valueIfNotSet` *Any*
 - `updater` *Function*
 
@@ -175,8 +175,8 @@ var inc = function (v) { return v + 1; };
 
 x.update('a', inc);
 x.update('b', 0, inc);
-x.get('a'); // 2
-x.get('b'); // 0
+x.get('a'); // Returns 2
+x.get('b'); // Returns 0
 ```
 
 <hr>
@@ -189,7 +189,7 @@ or `update` directly. By default, this will only invalidate values which are
 instances of `Object` like arrays, objects and functions. You can override
 this behavior in `options`.
 
-- `keyPath` *Array of String*
+- `keyPath` *String* or *Array of String*
 - `options` *Object*
   - `allTypes` *Boolean* (default=false)
     - Setting this `true` will invalidate reactive dependents for any type of
@@ -207,10 +207,11 @@ Example:
 ```javascript
 var state = new ReactiveObj({a: 1}});
 var print = Tracker.autorun(function () {
-  console.log( state.get('a') ); // 1
+  console.log( state.get('a') ); // Prints 1
 });
-state.get().a = 2; // Nothing happens
-state.forceInvalidate(); // Prints 2;
+state.get().a = 2;
+state.get('a'); // Prints 1
+state.forceInvalidate(); // Prints 2
 ```
 
 ## Discussion
