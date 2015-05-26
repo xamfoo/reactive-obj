@@ -169,6 +169,60 @@ Tinytest.add('Get value if not set', function (test) {
   test.equal(x.get('b', 2), 2);
 });
 
+Tinytest.add('Equals method', function (test) {
+  var obj = {a: 1, b: {c: 2}};
+  var x = new ReactiveObj(obj);
+
+  test.isTrue(x.equals([], obj));
+  test.isFalse(x.equals([], undefined));
+
+  test.isTrue(x.equals('a', 1));
+  test.isFalse(x.equals('a', 2));
+
+  test.isTrue(x.equals(['b', 'c'], 2));
+  test.isFalse(x.equals(['b', 'c'], 1));
+
+  test.isTrue(x.equals('x', undefined));
+});
+
+Tinytest.add('Invalidation of equals method calls', function (test) {
+  var count1 = 0;
+  var count2 = 0;
+  var b = {b: 1};
+  var a = {a: b, c: 2};
+  var x = new ReactiveObj(a);
+  var c1 = Tracker.autorun(function () {
+    x.equals(['a', 'b'], 1);
+    count1 += 1;
+  });
+  var c2 = Tracker.autorun(function () {
+    x.equals('c', 2);
+    count2 += 1;
+  });
+
+  Tracker.flush();
+  test.equal(count1, 1);
+  test.equal(count2, 1);
+
+  x.set('c', 3);
+  Tracker.flush();
+  test.equal(count1, 1);
+  test.equal(count2, 2);
+
+  x.set(['a', 'b'], 0);
+  Tracker.flush();
+  test.equal(count1, 2);
+  test.equal(count2, 2);
+
+  x.set([], a);
+  Tracker.flush();
+  test.equal(count1, 3);
+  test.equal(count2, 3);
+
+  c1.stop();
+  c2.stop();
+});
+
 Tinytest.add('Transform function is used when specified', function (test) {
   var count = 0;
   var x = new ReactiveObj({a: 1}, {
