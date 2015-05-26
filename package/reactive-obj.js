@@ -13,6 +13,7 @@ ReactiveObj = function (initialValue, options) {
 };
 _.extend(ReactiveObj.prototype, {
 
+  // Returns a normalized keyPath or throws an error if it is invalid
   _matchKeyPath: function (keyPath) {
     if (typeof keyPath === 'string') keyPath = [keyPath];
     else if (typeof keyPath === 'undefined') keyPath = [];
@@ -21,6 +22,8 @@ _.extend(ReactiveObj.prototype, {
     return keyPath;
   },
 
+  // Visits a path in object and calls the given `visitor` callback
+  // Returns NOTSET if path does not exist
   _visitPath: function (node, keyPath, visitor) {
     for (var i=0, l=keyPath.length, s=node, lastS=null; i<l; i+=1) {
       if (typeof s === 'object' && keyPath[i] in s) {
@@ -64,6 +67,7 @@ _.extend(ReactiveObj.prototype, {
     return newNode;
   },
 
+  // Add a dependency
   _addDep: function (opt) {
     var self = this;
     var currentNode = self._deps;
@@ -89,6 +93,7 @@ _.extend(ReactiveObj.prototype, {
     };
   },
 
+  // Remove a dependency
   _removeDep: function (opt) {
     var self = this;
     var currentNode = self._deps;
@@ -120,6 +125,7 @@ _.extend(ReactiveObj.prototype, {
     self._willCleanDeps.push(opt.path);
   },
 
+  // Checks an array of paths and remove empty nodes depth first
   _cleanDeps: function () {
     var self = this;
     var cleanPaths = _.chain(self._willCleanDeps)
@@ -226,20 +232,34 @@ _.extend(ReactiveObj.prototype, {
 
     return self;
   },
+ 
+  // Breadth first traversal
+  _traverse: function (tree, callback) {
+    var queue = [];
+    var next = {parent: null, node: tree, path: []};
+    var nextNodes;
 
-  invalidate: function (keyPath) {
-    var self = this;
-
-    // Calls invalidate later if not already
-    if (self._willInvalidate.length === 0) {
-      Tracker.afterFlush(function () {
-        self._processInvalidations();
-      });
+    while (next) {
+      nextNodes = callback(next);
+      if (typeof nextNodes === 'object') {
+        _.each(nextNodes, function(node, k) {
+          if (!node) return;
+          queue.push({parent: next, node: node, path: next.path.concat(k)});
+        });
+      }
+      next = queue.shift();
     }
+  },
 
-    if (typeof keyPath === 'string') keyPath = [keyPath];
-    else if (!(keyPath instanceof Array)) keyPath = [];
-    self._willInvalidate.push(keyPath);
+  // Clear the cached values of deps in a given node
+  _resetDeps: function (deps, allTypes) {
+    var depKeys = _.keys(deps);
+
+    for (var i=0, l=depKeys.length, d; i<l; i+=1) {
+      d = deps[depKeys[i]];
+      if (allTypes) delete d.lastVal;
+      else if (d.lastVal instanceof Object) delete d.lastVal;
+    };
   },
 
   forceInvalidate: function (keyPath, options) {
@@ -267,16 +287,7 @@ _.extend(ReactiveObj.prototype, {
     self.invalidate(keyPath);
   },
 
-  _resetDeps: function (deps, allTypes) {
-    var depKeys = _.keys(deps);
-
-    for (var i=0, l=depKeys.length, d; i<l; i+=1) {
-      d = deps[depKeys[i]];
-      if (allTypes) delete d.lastVal;
-      else if (d.lastVal instanceof Object) delete d.lastVal;
-    };
-  },
-
+  // Create a tree from an array of paths
   _makePathTree: function (pathArr) {
     return _.chain(pathArr)
     .sortBy(function (keyPath) { return keyPath.length; })
@@ -302,23 +313,16 @@ _.extend(ReactiveObj.prototype, {
     .value();
   },
 
-  _traverse: function (tree, callback) {
-    var queue = [];
-    var next = {parent: null, node: tree, path: []};
-    var nextNodes;
-
-    while (next) {
-      nextNodes = callback(next);
-      if (typeof nextNodes === 'object') {
-        _.each(nextNodes, function(node, k) {
-          if (!node) return;
-          queue.push({parent: next, node: node, path: next.path.concat(k)});
-        });
-      }
-      next = queue.shift();
+  // Convert a value keypath to a path in the deps tree
+  _keyPathToDepPath: function (keyPath) {
+    var path = ['children'];
+    for (var i=0, l=keyPath.length; i<l; i+=1) {
+      path.push(keyPath[i], 'children');
     }
+    return path;
   },
 
+  // Process outstanding invalidations in the queue
   _processInvalidations: function () {
     var self = this;
     var invalidTree;
@@ -333,10 +337,11 @@ _.extend(ReactiveObj.prototype, {
     self._willInvalidate = [];
   },
 
+  // Invalidate deps in a given tree
   _invalidateTree: function (invalidTree) {
     var self = this;
     self._traverse(invalidTree, function (nodeDes) {
-      self._invalidateComputation(
+      self._invalidatePath(
         nodeDes.path,
         nodeDes.node === true ? true : undefined
       );
@@ -344,21 +349,14 @@ _.extend(ReactiveObj.prototype, {
     });
   },
 
-  _keyPathToDepPath: function (keyPath) {
-    var path = ['children'];
-    for (var i=0, l=keyPath.length; i<l; i+=1) {
-      path.push(keyPath[i], 'children');
-    }
-    return path;
-  },
-
-  _invalidateComputation: function (keyPath, invalidateChildren) {
+  // Invalidate deps in a given path
+  _invalidatePath: function (keyPath, invalidateChildren) {
     var self = this;
     var path = self._keyPathToDepPath(keyPath);
     var lastNode;
 
     self._visitPath(self._deps, path, function (context) {
-      self._invalidatePathDeps(keyPath, context.node.deps);
+      self._invalidateDeps(keyPath, context.node.deps);
       lastNode = context.node;
     });
 
@@ -366,13 +364,15 @@ _.extend(ReactiveObj.prototype, {
       self._traverse(lastNode, function (nodeDes) {
         if (nodeDes.path.length) {
           var path = keyPath.concat(nodeDes.path);
-          self._invalidatePathDeps(path, nodeDes.node.deps);
+          self._invalidateDeps(path, nodeDes.node.deps);
         }
         return nodeDes.node.children;
       });
   },
 
-  _invalidatePathDeps: function (keyPath, deps) {
+  // Invalidate deps in a given node
+  // keyPath is used to find the current value
+  _invalidateDeps: function (keyPath, deps) {
     var self = this;
     var depKeys = _.keys(deps);
     var val = self._visitPath(self._obj, keyPath);
@@ -382,5 +382,21 @@ _.extend(ReactiveObj.prototype, {
       d = deps[depKeys[i]];
       if (!('lastVal' in d) || val !== d.lastVal) d.comp.invalidate();
     };
+  },
+
+  // Triggers invalidation
+  invalidate: function (keyPath) {
+    var self = this;
+
+    // Calls invalidate later if not already
+    if (self._willInvalidate.length === 0) {
+      Tracker.afterFlush(function () {
+        self._processInvalidations();
+      });
+    }
+
+    if (typeof keyPath === 'string') keyPath = [keyPath];
+    else if (!(keyPath instanceof Array)) keyPath = [];
+    self._willInvalidate.push(keyPath);
   }
 });
