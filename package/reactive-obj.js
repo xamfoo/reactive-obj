@@ -155,29 +155,46 @@ _.extend(ReactiveObj.prototype, {
     self._willCleanDeps = [];
   },
 
-  get: function (keyPath, valueIfNotSet) {
+  // Internal get with more options
+  _get: function (keyPath, options) {
     var self = this;
-    var computation, id, value;
+    var computation, id, value, depOptions;
     keyPath = self._matchKeyPath(keyPath);
+    options = options || {};
 
     value = self._visitPath(self._obj, keyPath);
 
     if (Tracker.active) {
       computation = Tracker.currentComputation;
       id = computation._id;
-      self._addDep({
+      depOptions = {
         id: id,
         path: keyPath,
         comp: computation,
         lastVal: value
-      });
+      };
+      if ('equals' in options) depOptions.equals = options.equals;
+      self._addDep(depOptions);
       Tracker.currentComputation.onInvalidate(function () {
         self._removeDep({path: keyPath, id: id});
       });
     }
 
-    if (value === NOTSET) return valueIfNotSet;
-    return self._transform ? self._transform(value) : value;
+    if (value === NOTSET) return options.valIfNotSet;
+    if (options.noTransform) return value;
+    else return self._transform ? self._transform(value) : value;
+  },
+
+  get: function (keyPath, valIfNotSet) {
+    return this._get(keyPath, {valIfNotSet: valIfNotSet});
+  },
+
+  equals: function (keyPath, value) {
+    return value === this._get(keyPath, {
+      equals: value,
+      valIfNotSet: undefined,
+      noTransform: true
+    });
   },
 
   set: function (keyPath, value) {
