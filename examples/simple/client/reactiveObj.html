@@ -20,6 +20,10 @@
     <li>Changes to <em>john</em> should not affect reactive dependencies on
       <em>alice</em> and vice versa.
     </li>
+    <li>
+      You can experiment using the browser developer console to modify the
+      state. Example: <pre>state.set('owners.john', {apple: 1});</pre>
+    </li>
   </ul>
   <h4>state rendered: {{rendered 'all'}}</h4>
   <pre>{{all}}</pre>

@@ -9,11 +9,17 @@ Tinytest.add('Get nested nodes', function (test) {
   var obj = {a: 1, b: {c: 2}, d: [0, 42, {e: 13}]};
   var x = new ReactiveObj(obj);
 
-  test.equal(x.get('a'), 1);
+  test.equal(x.get(), obj);
+
   test.equal(x.get(['a']), 1);
   test.equal(x.get(['b', 'c']), 2);
   test.equal(x.get(['d', 1]), 42);
   test.equal(x.get(['d', 2, 'e']), 13);
+
+  test.equal(x.get('a'), 1);
+  test.equal(x.get('b.c'), 2);
+  test.equal(x.get('d.1'), 42);
+  test.equal(x.get('d.2.e'), 13);
 });
 
 Tinytest.add('Replace root node', function (test) {
