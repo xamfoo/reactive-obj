@@ -21,12 +21,12 @@
       <em>alice</em> and vice versa.
     </li>
   </ul>
-  <h4>state rendered: {{renderAll}}</h4>
+  <h4>state rendered: {{rendered 'all'}}</h4>
   <pre>{{all}}</pre>
 
-  <h4>state.owners.john rendered: {{renderJohn}}</h4>
-  <pre>{{john}}</pre>
+  <h4>state.owners.john rendered: {{rendered 'john'}}</h4>
+  <pre>{{owner 'john'}}</pre>
 
-  <h4>state.owners.alice rendered: {{renderAlice}}</h4>
-  <pre>{{alice}}</pre>
+  <h4>state.owners.alice rendered: {{rendered 'alice'}}</h4>
+  <pre>{{owner 'alice'}}</pre>
 </template>

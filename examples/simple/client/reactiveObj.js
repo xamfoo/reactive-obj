@@ -2,39 +2,28 @@ state = new ReactiveObj({
   owners: {
     john: {},
     alice: {}
-  }
+  },
 });
 
-Session.set('renderAll', 0);
-Session.set('renderJohn', 0);
-Session.set('renderAlice', 0);
+var rendered = new ReactiveObj({
+  all: 0,
+  john: 0,
+  alice: 0
+});
 
 Template.state.helpers({
-  renderAll: function () { return Session.get('renderAll'); },
-
   all: function () {
-    Tracker.nonreactive(function () {
-      Session.set('renderAll', Session.get('renderAll') + 1);
-    });
+    rendered.update('all', function (v) { return v + 1; });
     return JSON.stringify(state.get(), null, 2);
   },
 
-  renderJohn: function () { return Session.get('renderJohn'); },
-
-  john: function () {
-    Tracker.nonreactive(function () {
-      Session.set('renderJohn', Session.get('renderJohn') + 1);
-    });
-    return JSON.stringify(state.get(['owners', 'john']), null, 2);
+  owner: function (name) {
+    rendered.update(name, function (v) { return v + 1; });
+    return JSON.stringify(state.get(['owners', name]), null, 2);
   },
 
-  renderAlice: function () { return Session.get('renderAlice'); },
-
-  alice: function () {
-    Tracker.nonreactive(function () {
-      Session.set('renderAlice', Session.get('renderAlice') + 1);
-    });
-    return JSON.stringify(state.get(['owners', 'alice']), null, 2);
+  rendered: function (key) {
+    return rendered.get(key);
   }
 });
 
