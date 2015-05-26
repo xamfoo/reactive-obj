@@ -91,6 +91,7 @@ _.extend(ReactiveObj.prototype, {
       comp: opt.comp,
       lastVal: opt.lastVal
     };
+    if ('equals' in opt) node.deps[opt.id].equals = opt.equals;
   },
 
   // Remove a dependency
