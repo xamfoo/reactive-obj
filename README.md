@@ -86,7 +86,18 @@ x.get(['b', 'c']); // undefined
 x.get('b', 2); // 2
 ```
 
-----
+<hr>
+
+### `reactiveObj.equals(keyPath, value)`
+
+Returns true if the object's property specified by the keypath is equals to
+the `value` or false if otherwise. Establishes a reactive dependency which is
+invalidated only when the property changes to and from the value.
+
+- `keyPath` *Array of String*
+- `value` *Any*
+
+<hr>
 
 ### `reactiveObj.set(keyPath, value)`
 
@@ -107,7 +118,18 @@ x.set(['a', 'b'], 1);
 x.get('a'); // {b: 1}
 ```
 
-----
+<hr>
+
+### `reactiveObj.setDefault(keyPath, valueIfNotSet)`
+
+Sets the object's property specified by the keypath if it hasn't been set
+before and returns the `reactiveObj` that can be used for chaining.  Keys in
+the keypath that do not exist will be created.
+
+- `keyPath` *Array of String*
+- `valueIfNotSet` *Any*
+
+<hr>
 
 ### `reactiveObj.update(keyPath, [valueIfNotSet], updater)`
 
