@@ -210,7 +210,7 @@ var print = Tracker.autorun(function () {
   console.log( state.get('a') ); // Prints 1
 });
 state.get().a = 2;
-state.get('a'); // Prints 1
+state.get('a'); // Returns 1
 state.forceInvalidate(); // Prints 2
 ```
 

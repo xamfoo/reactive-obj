@@ -1,6 +1,6 @@
 Package.describe({
   name: 'xamfoo:reactive-obj',
-  version: '0.4.1',
+  version: '0.4.2',
   summary: 'Reactivity for nested objects',
   git: 'https://github.com/xamfoo/reactive-obj',
   documentation: 'README.md'
