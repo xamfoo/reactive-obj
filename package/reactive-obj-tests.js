@@ -179,10 +179,16 @@ Tinytest.add('setDefault method', function (test) {
 });
 
 Tinytest.add('Get value if not set', function (test) {
-  var x = new ReactiveObj({a: 1});
+  var x = new ReactiveObj({a: 1, c: null, d: undefined});
 
   test.equal(x.get('a', 0), 1);
+  test.equal(x.get('a.x', 0), 0);
   test.equal(x.get('b', 2), 2);
+  test.equal(x.get('b.x', 2), 2);
+  test.equal(x.get('c', 3), null);
+  test.equal(x.get('c.x', 3), 3);
+  test.equal(x.get('d', 4), undefined);
+  test.equal(x.get('d.x', 4), 4);
 });
 
 Tinytest.add('Equals method', function (test) {
