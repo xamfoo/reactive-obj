@@ -26,7 +26,7 @@ _.extend(ReactiveObj.prototype, {
   // Returns NOTSET if path does not exist
   _visitPath: function (node, keyPath, visitor) {
     for (var i=0, l=keyPath.length, s=node, lastS=null; i<l; i+=1) {
-      if (typeof s === 'object' && keyPath[i] in s) {
+      if (s instanceof Object && keyPath[i] in s) {
         lastS = s;
         s = s[keyPath[i]];
       }
@@ -260,7 +260,7 @@ _.extend(ReactiveObj.prototype, {
 
     return self;
   },
- 
+
   // Breadth first traversal
   _traverse: function (tree, callback) {
     var queue = [];
@@ -269,7 +269,7 @@ _.extend(ReactiveObj.prototype, {
 
     while (next) {
       nextNodes = callback(next);
-      if (typeof nextNodes === 'object') {
+      if (nextNodes instanceof Object) {
         _.each(nextNodes, function(node, k) {
           if (!node) return;
           queue.push({parent: next, node: node, path: next.path.concat(k)});
