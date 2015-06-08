@@ -38,11 +38,13 @@ Tinytest.add('Replace nested nodes', function (test) {
   x.set(['b', 'c'], 20);
   x.set(['d', 1], 'forty-two');
   x.set(['d', 2, 'e'], {f: 'thirteen'});
+  x.set(['x', 'y', 'z'], 0);
   test.equal(x.get(['a', 'aa']), 1);
   test.equal(x.get('aa'), 11);
   test.equal(x.get(['b', 'c']), 20);
   test.equal(x.get(['d', 1]), 'forty-two');
   test.equal(x.get(['d', 2, 'e', 'f']), 'thirteen');
+  test.equal(x.get(['x', 'y', 'z']), 0);
 });
 
 Tinytest.add('Root node getter is reactive', function (test) {

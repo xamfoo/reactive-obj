@@ -53,7 +53,7 @@ _.extend(ReactiveObj.prototype, {
       currentKey = path[i];
       if (i === l) currentValue = value;
       else {
-        if (prevNode[currentKey] instanceof Array) currentValue = [];
+        if (prevNode && prevNode[currentKey] instanceof Array) currentValue = [];
         else currentValue = {};
       }
 
