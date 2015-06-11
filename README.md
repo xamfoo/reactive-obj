@@ -20,6 +20,7 @@ Meteor reactivity for nested objects.
   - [`reactiveObj.set(keyPath, value)`](#reactiveobjsetkeypath-value)
   - [`reactiveObj.setDefault(keyPath, valueIfNotSet)`](#reactiveobjsetdefaultkeypath-valueifnotset)
   - [`reactiveObj.update(keyPath, [valueIfNotSet], updater)`](#reactiveobjupdatekeypath-valueifnotset-updater)
+  - [`reactiveObj[ArrayMethod](keyPath, methodArgs...)`](#reactiveobjarraymethodkeypath-methodargs)
   - [`reactiveObj.forceInvalidate(keyPath, [options])`](#reactiveobjforceinvalidatekeypath-options)
 - [Discussion](#discussion)
     - [Why use this instead of Session, ReactiveVar or ReactiveDict?](#why-use-this-instead-of-session-reactivevar-or-reactivedict)
@@ -64,14 +65,15 @@ Constructor for a single reactive object.
   object.
 - `options` *Object*
   - `transform` *Function*
-    - Specify a transform function for all values returned via get. `transform`
-    should take a single argument value and return the new value.
+    - Specify a transform function for all values returned via `get()` and
+    `update()`. `transform` should take a single argument value and return the
+    new value.
 
 Example of a transform function:
 ```javascript
 var state = new ReactiveObj({}, {
   transform: function (value) {
-    return EJSON.clone(value); // cloning prevents changes to original value
+    return EJSON.clone(value); // cloning prevents changes to the original value
   }
 });
 state.set('a', {x: 1});
@@ -153,15 +155,23 @@ the keypath that do not exist will be created.
 - `keyPath` *String* or *Array of String*
 - `valueIfNotSet` *Any*
 
+Example:
+```javascript
+var x = new ReactiveObj({a: 20});
+x.setDefault('a', 1)
+.setDefault('b', 2);
+x.get(); // Returns {a: 20, b: 2}
+```
+
 <hr>
 
 ### `reactiveObj.update(keyPath, [valueIfNotSet], updater)`
 
-Update the value at this keypath with the return value of calling `updater`
-with the existing value or `valueIfNotSet` if the key was not set.
+Update the value at this keypath with the return value of calling `updater`.
+`updater` is called with its value or `valueIfNotSet` if the key was not set.
 
 - `keyPath` *String* or *Array of String*
-- `valueIfNotSet` *Any*
+- `valueIfNotSet` *Any* (default=undefined)
 - `updater` *Function*
 
 Beware of mutating the returned value as it changes the stored object without
@@ -181,13 +191,35 @@ x.get('b'); // Returns 0
 
 <hr>
 
+### `reactiveObj[ArrayMethod](keyPath, methodArgs...)`
+
+Applys an array method on the value specified by the keypath and returns the
+result. Throws an error if the value is not an array.
+
+- `ArrayMethod` *String*
+  - Supported methods: `push`, `pop`, `reverse`, `shift`, `sort`, `splice`,
+  `unshift`
+- `keyPath` *String* or *Array of String*
+- `methodArgs` *Any*
+  - Comma separated arguments for passing to the array method
+
+Example:
+```javascript
+var state = new ReactiveObj({a: []});
+state.push('a', 'foo'); // Returns 1
+state.push('a', 'bar'); // Returns 2
+state.get('a'); // Returns ['foo', 'bar']
+```
+
+<hr>
+
 ### `reactiveObj.forceInvalidate(keyPath, [options])`
 
-Invalidate reactive dependents on the value and its children specified by
-the keypath. You will need to call this if you mutate values returned by `get`
-or `update` directly. By default, this will only invalidate values which are
-instances of `Object` like arrays, objects and functions. You can override
-this behavior in `options`.
+Invalidate reactive dependents on the value specified by the keypath. You will
+need to call this if you mutate values returned by `get` or `update` directly.
+By default, this will only invalidate values which are instances of `Object`
+like arrays, objects and functions. You can override this behavior in
+`options`.
 
 - `keyPath` *String* or *Array of String*
 - `options` *Object*
