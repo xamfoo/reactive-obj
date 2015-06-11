@@ -306,15 +306,15 @@ Tinytest.add('Force invalidate', function (test) {
 
   x.forceInvalidate('a', {allTypes: true});
   Tracker.flush();
-  test.equal(count0, 2);
+  test.equal(count0, 3);
   test.equal(count1, 3);
   test.equal(count2, 2);
   test.equal(count3, 2);
 
   x.forceInvalidate(['a', 'b'], {allTypes: true});
   Tracker.flush();
-  test.equal(count0, 2);
-  test.equal(count1, 3);
+  test.equal(count0, 4);
+  test.equal(count1, 4);
   test.equal(count2, 3);
   test.equal(count3, 2);
 
@@ -353,7 +353,7 @@ Tinytest.add('Force invalidate without children', function (test) {
 
   x.forceInvalidate('a', {noChildren: true});
   Tracker.flush();
-  test.equal(count0, 2);
+  test.equal(count0, 3);
   test.equal(count1, 2);
   test.equal(count2, 1);
 
