@@ -9,8 +9,7 @@ var mutatorOpt = {
   }
 };
 
-var mutators = ['copyWithin', 'fill', 'pop', 'push', 'reverse', 'shift',
-  'sort', 'splice', 'unshift'];
+var mutators = ['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'];
 
 ArrayMethods = _.reduce(mutators, function (acc, v) {
   var method = Array.prototype[v];
