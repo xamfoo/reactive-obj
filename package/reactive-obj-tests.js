@@ -154,9 +154,21 @@ Tinytest.add('Empty nodes in deps are cleaned up when removed', function (test) 
 });
 
 Tinytest.add('Update value if not set', function (test) {
+  var count1 = 0;
   var x = new ReactiveObj({a: 1});
 
-  x.update('b', 2, function () {});
+  x.update('b', 2, function (v) {
+    test.equal(v, 2);
+    count1 += 1;
+  });
+  test.equal(count1, 1);
+
+  x.update('b', function (v) {
+    test.equal(v, undefined);
+    count1 += 1;
+    return 2;
+  });
+  test.equal(count1, 2);
   test.equal(x.get('b'), 2);
 });
 
