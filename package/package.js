@@ -9,7 +9,7 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.0.4.1');
   api.use(['underscore', 'tracker']);
-  api.addFiles('reactive-obj.js');
+  api.addFiles(['helpers.js', 'array-methods.js', 'reactive-obj.js']);
   api.export('ReactiveObj');
 });
 
