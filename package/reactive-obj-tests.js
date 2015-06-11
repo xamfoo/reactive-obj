@@ -361,3 +361,58 @@ Tinytest.add('Force invalidate without children', function (test) {
   c1.stop();
   c2.stop();
 });
+
+Tinytest.add('Array methods', function (test) {
+  var count0 = 0;
+  var count1 = 0;
+  var count2 = 0;
+  var count3 = 0;
+  var v = 42;
+  var c = [v];
+  var b = {b: c};
+  var a = {a: b};
+  var x = new ReactiveObj(a);
+  var c0 = Tracker.autorun(function () {
+    test.equal(x.get(), a);
+    count0 += 1;
+  });
+  var c1 = Tracker.autorun(function () {
+    test.equal(x.get('a'), b);
+    count1 += 1;
+  });
+  var c2 = Tracker.autorun(function () {
+    test.equal(x.get(['a', 'b']), c);
+    count2 += 1;
+  });
+  var c3 = Tracker.autorun(function () {
+    test.equal(x.get(['a', 'b', '0']), v);
+    count3 += 1;
+  });
+
+  test.equal(x.push(['a', 'b'], 10), 2);
+  Tracker.flush();
+  test.equal(count0, 2);
+  test.equal(count1, 2);
+  test.equal(count2, 2);
+  test.equal(count3, 1);
+
+  test.equal(x.pop(['a', 'b']), 10);
+  Tracker.flush();
+  test.equal(count0, 3);
+  test.equal(count1, 3);
+  test.equal(count2, 3);
+  test.equal(count3, 1);
+
+  v = undefined;
+  test.equal(x.shift(['a', 'b']), 42);
+  Tracker.flush();
+  test.equal(count0, 4);
+  test.equal(count1, 4);
+  test.equal(count2, 4);
+  test.equal(count3, 2);
+
+  c0.stop();
+  c1.stop();
+  c2.stop();
+  c3.stop();
+});
