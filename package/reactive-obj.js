@@ -290,17 +290,19 @@ _.extend(ReactiveObj.prototype, {
     var self = this;
     var path, lastNode;
     keyPath = self._matchKeyPath(keyPath);
-    path = self._keyPathToDepPath(keyPath);
     options = options || {};
     _.defaults(options, {
       allType: false,
       noChildren: false
     });
 
-    self._visitPath(self._deps, path, function (context) {
-      self._resetDeps(context.node.deps, options.allTypes);
-      lastNode = context.node;
-    });
+    for (var i=0, l=keyPath.length; i<=l; i+=1) {
+      path = self._keyPathToDepPath(keyPath.slice(0, i));
+      self._visitPath(self._deps, path, function (context) {
+        self._resetDeps(context.node.deps, options.allTypes);
+        lastNode = context.node;
+      });
+    }
 
     if (!options.noChildren && lastNode)
       self._traverse(lastNode, function (nodeDes) {
