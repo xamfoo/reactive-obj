@@ -1,5 +1,3 @@
-var NOTSET = {};
-
 ReactiveObj = function (initialValue, options) {
   var self = this;
   self._obj = typeof initialValue === 'object' ? initialValue : {};
@@ -432,4 +430,4 @@ _.extend(ReactiveObj.prototype, {
     else if (!(keyPath instanceof Array)) keyPath = [];
     self._willInvalidate.push(keyPath);
   }
-});
+}, ArrayMethods);
