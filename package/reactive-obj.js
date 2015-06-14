@@ -254,6 +254,10 @@ _.extend(ReactiveObj.prototype, {
 
     return self;
   },
+  
+  select: function (keyPath) {
+    return new Cursor(this, this._matchKeyPath(keyPath));
+  },
 
   // Breadth first traversal
   _traverse: function (tree, callback) {
