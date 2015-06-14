@@ -2,6 +2,9 @@ NOTSET = {};
 
 Helpers = {};
 
+/**
+ * With `this` as a reactiveObj, applys a given mutator on a key path.
+ */
 Helpers.applyMutator = function (mutator, options, keyPath/*, arguments*/) {
   options = options || {};
   var self = this;
