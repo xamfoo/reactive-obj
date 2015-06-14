@@ -416,3 +416,71 @@ Tinytest.add('Array methods', function (test) {
   c2.stop();
   c3.stop();
 });
+
+Tinytest.add('Cursor methods', function (test) {
+  var count1 = 0;
+  var count2 = 0;
+  var count3 = 0;
+  var count4 = 0;
+  var count5 = 0;
+  var val = 1;
+  var c = {c: 1}
+  var b = {b: c};
+  var a = {a: b};
+  var x = new ReactiveObj(a);
+  var xc = x.select(['a', 'b', 'c']);
+  test.equal(x.select('a').get(), b);
+  test.equal(x.select(['a', 'b']).get(), c);
+
+  var c1 = Tracker.autorun(function () {
+    test.equal(xc.get(), val);
+    count1 += 1;
+  });
+  var c2 = Tracker.autorun(function () {
+    test.equal(x.select(['a', 'b', 'c']).get(), val);
+    count2 += 1;
+  });
+  var c3 = Tracker.autorun(function () {
+    x.select(['a', 'b']).get();
+    count3 += 1;
+  });
+  var c4 = Tracker.autorun(function () {
+    x.select(['a']).get();
+    count4 += 1;
+  });
+  var c5 = Tracker.autorun(function () {
+    x.select([]).get();
+    count5 += 1;
+  });
+
+  val = [];
+  xc.set(val);
+  Tracker.flush();
+  test.equal(count1, 2);
+  test.equal(count2, 2);
+  test.equal(count3, 2);
+  test.equal(count4, 2);
+  test.equal(count5, 2);
+
+  xc.push(1);
+  Tracker.flush();
+  test.equal(count1, 3);
+  test.equal(count2, 3);
+  test.equal(count3, 3);
+  test.equal(count4, 3);
+  test.equal(count5, 3);
+
+  x.select(['a', 'd']).set(20);
+  Tracker.flush();
+  test.equal(count1, 3);
+  test.equal(count2, 3);
+  test.equal(count3, 3);
+  test.equal(count4, 4);
+  test.equal(count5, 4);
+
+  c1.stop();
+  c2.stop();
+  c3.stop();
+  c4.stop();
+  c5.stop();
+});
