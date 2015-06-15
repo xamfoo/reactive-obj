@@ -27,6 +27,8 @@ Tinytest.add('Replace root node', function (test) {
   var x = new ReactiveObj(obj);
   x.set([], {b: 1});
   test.equal(x.get().b, 1);
+  x.set({c: 1});
+  test.equal(x.get().c, 1);
 });
 
 Tinytest.add('Replace nested nodes', function (test) {
@@ -209,8 +211,8 @@ Tinytest.add('Equals method', function (test) {
   var obj = {a: 1, b: {c: 2}};
   var x = new ReactiveObj(obj);
 
-  test.isTrue(x.equals([], obj));
-  test.isFalse(x.equals([], undefined));
+  test.isTrue(x.equals(obj));
+  test.isFalse(x.equals(undefined));
 
   test.isTrue(x.equals('a', 1));
   test.isFalse(x.equals('a', 2));
@@ -437,15 +439,15 @@ Tinytest.add('Cursor methods', function (test) {
     count1 += 1;
   });
   var c2 = Tracker.autorun(function () {
-    test.equal(x.select(['a', 'b', 'c']).get(), val);
+    test.equal(x.select('a').select(['b', 'c']).get(), val);
     count2 += 1;
   });
   var c3 = Tracker.autorun(function () {
-    x.select(['a', 'b']).get();
+    x.select('a').get('b');
     count3 += 1;
   });
   var c4 = Tracker.autorun(function () {
-    x.select(['a']).get();
+    x.select('a').get();
     count4 += 1;
   });
   var c5 = Tracker.autorun(function () {
@@ -462,7 +464,7 @@ Tinytest.add('Cursor methods', function (test) {
   test.equal(count4, 2);
   test.equal(count5, 2);
 
-  xc.push(1);
+  xc.push([], 1);
   Tracker.flush();
   test.equal(count1, 3);
   test.equal(count2, 3);
