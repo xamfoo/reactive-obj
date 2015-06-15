@@ -14,7 +14,7 @@ var methods = {
   setDefault: {noKeyPath: [1]},
   update: undefined,
   select: undefined,
-  forceInvalidate: {noKeyPath: [1]}
+  forceInvalidate: undefined
 };
 _.each(ArrayMethods, function (v, k) { methods[k] = undefined; });
 
