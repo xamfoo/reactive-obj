@@ -188,6 +188,10 @@ _.extend(ReactiveObj.prototype, {
   },
 
   equals: function (keyPath, value) {
+    if (arguments.length === 1) {
+      value = keyPath;
+      keyPath = [];
+    }
     return value === this._get(keyPath, {
       equals: value,
       valIfNotSet: undefined,
@@ -196,9 +200,12 @@ _.extend(ReactiveObj.prototype, {
   },
 
   set: function (keyPath, value) {
+    if (arguments.length === 1) {
+      value = keyPath;
+      keyPath = [];
+    }
     var self = this;
     var newState, noop;
-    if (arguments.length < 2) throw new Error("No value to set");
     keyPath = self._matchKeyPath(keyPath);
 
     // Replace root node
@@ -246,6 +253,10 @@ _.extend(ReactiveObj.prototype, {
   },
 
   setDefault: function (keyPath, valIfNotSet) {
+    if (arguments.length === 1) {
+      valIfNotSet = keyPath;
+      keyPath = [];
+    }
     var self = this;
     var value = Tracker.nonreactive(function () {
       return self.get(keyPath, NOTSET);
@@ -254,7 +265,7 @@ _.extend(ReactiveObj.prototype, {
 
     return self;
   },
-  
+
   select: function (keyPath) {
     return new Cursor(this, this._matchKeyPath(keyPath));
   },
@@ -289,6 +300,10 @@ _.extend(ReactiveObj.prototype, {
   },
 
   forceInvalidate: function (keyPath, options) {
+    if (arguments.length === 1) {
+      options = keyPath;
+      keyPath = [];
+    }
     var self = this;
     var path, lastNode;
     keyPath = self._matchKeyPath(keyPath);
