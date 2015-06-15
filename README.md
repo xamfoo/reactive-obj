@@ -20,9 +20,9 @@ Meteor reactivity for nested objects.
   - [`reactiveObj.set([keyPath], value)`](#reactiveobjsetkeypath-value)
   - [`reactiveObj.setDefault([keyPath], valueIfNotSet)`](#reactiveobjsetdefaultkeypath-valueifnotset)
   - [`reactiveObj.update(keyPath, [valueIfNotSet], updater)`](#reactiveobjupdatekeypath-valueifnotset-updater)
-  - [`reactiveObj[ArrayMethod](keyPath, methodArgs...)`](#reactiveobjarraymethodkeypath-methodargs)
   - [`reactiveObj.forceInvalidate(keyPath, [options])`](#reactiveobjforceinvalidatekeypath-options)
 - [Experimental Features](#experimental-features)
+  - [`reactiveObj[ArrayMethod](keyPath, methodArgs...)`](#reactiveobjarraymethodkeypath-methodargs)
   - [`reactiveObj.select(keyPath)`](#reactiveobjselectkeypath)
 - [Discussion](#discussion)
     - [Why use this instead of Session, ReactiveVar or ReactiveDict?](#why-use-this-instead-of-session-reactivevar-or-reactivedict)
@@ -193,28 +193,6 @@ x.get('b'); // Returns 0
 
 <hr>
 
-### `reactiveObj[ArrayMethod](keyPath, methodArgs...)`
-
-Applys a native array method on the value specified by the keypath and returns
-the result. Throws an error if the value is not an array.
-
-- `ArrayMethod` *String*
-  - Supported methods: `push`, `pop`, `reverse`, `shift`, `sort`, `splice`,
-  `unshift`
-- `keyPath` *String* or *Array of String*
-- `methodArgs` *Any*
-  - Comma separated arguments for passing to the array method
-
-Example:
-```javascript
-var state = new ReactiveObj({a: []});
-state.push('a', 'foo'); // Returns 1
-state.push('a', 'bar'); // Returns 2
-state.get('a'); // Returns ['foo', 'bar']
-```
-
-<hr>
-
 ### `reactiveObj.forceInvalidate(keyPath, [options])`
 
 Invalidate reactive dependents on the value specified by the keypath. You will
@@ -248,6 +226,28 @@ state.get('a'); // Returns 1
 state.forceInvalidate(); // Prints 2
 ```
 ## Experimental Features
+
+### `reactiveObj[ArrayMethod](keyPath, methodArgs...)`
+
+Applys a native array method on the value specified by the keypath and returns
+the result. Throws an error if the value is not an array.
+
+- `ArrayMethod` *String*
+  - Supported methods: `push`, `pop`, `reverse`, `shift`, `sort`, `splice`,
+  `unshift`
+- `keyPath` *String* or *Array of String*
+- `methodArgs` *Any*
+  - Comma separated arguments for passing to the array method
+
+Example:
+```javascript
+var state = new ReactiveObj({a: []});
+state.push('a', 'foo'); // Returns 1
+state.push('a', 'bar'); // Returns 2
+state.get('a'); // Returns ['foo', 'bar']
+```
+
+<hr>
 
 ### `reactiveObj.select(keyPath)`
 
