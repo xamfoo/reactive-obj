@@ -16,11 +16,14 @@ Meteor reactivity for nested objects.
 - [Usage](#usage)
   - [`new ReactiveObj([initialValue], [options])`](#new-reactiveobjinitialvalue-options)
   - [`reactiveObj.get([keyPath])`](#reactiveobjgetkeypath)
-  - [`reactiveObj.equals(keyPath, value)`](#reactiveobjequalskeypath-value)
-  - [`reactiveObj.set(keyPath, value)`](#reactiveobjsetkeypath-value)
-  - [`reactiveObj.setDefault(keyPath, valueIfNotSet)`](#reactiveobjsetdefaultkeypath-valueifnotset)
+  - [`reactiveObj.equals([keyPath], value)`](#reactiveobjequalskeypath-value)
+  - [`reactiveObj.set([keyPath], value)`](#reactiveobjsetkeypath-value)
+  - [`reactiveObj.setDefault([keyPath], valueIfNotSet)`](#reactiveobjsetdefaultkeypath-valueifnotset)
   - [`reactiveObj.update(keyPath, [valueIfNotSet], updater)`](#reactiveobjupdatekeypath-valueifnotset-updater)
   - [`reactiveObj.forceInvalidate(keyPath, [options])`](#reactiveobjforceinvalidatekeypath-options)
+- [Experimental Features](#experimental-features)
+  - [`reactiveObj[ArrayMethod](keyPath, methodArgs...)`](#reactiveobjarraymethodkeypath-methodargs)
+  - [`reactiveObj.select(keyPath)`](#reactiveobjselectkeypath)
 - [Discussion](#discussion)
     - [Why use this instead of Session, ReactiveVar or ReactiveDict?](#why-use-this-instead-of-session-reactivevar-or-reactivedict)
     - [Why doesn't `get` and `update` return cloned objects by default?](#why-doesnt-get-and-update-return-cloned-objects-by-default)
@@ -64,14 +67,15 @@ Constructor for a single reactive object.
   object.
 - `options` *Object*
   - `transform` *Function*
-    - Specify a transform function for all values returned via get. `transform`
-    should take a single argument value and return the new value.
+    - Specify a transform function for all values returned via `get()` and
+    `update()`. `transform` should take a single argument value and return the
+    new value.
 
 Example of a transform function:
 ```javascript
 var state = new ReactiveObj({}, {
   transform: function (value) {
-    return EJSON.clone(value); // cloning prevents changes to original value
+    return EJSON.clone(value); // cloning prevents changes to the original value
   }
 });
 state.set('a', {x: 1});
@@ -91,7 +95,7 @@ the key does not exist. Establishes a reactive dependency on the property.
   - Pointer to a property of an object. If not specified, this returns the top
   level object. `['fruits', 'apple']` and `'fruits.apple'` are equivalent and
   valid keypaths.
-- `valueIfNotSet` *Any*
+- `valueIfNotSet` *Any* (default=undefined)
 
 Beware of mutating the returned value as it changes the stored object without
 triggering reactivity. A way to avoid this is to specify a `transform`
@@ -112,7 +116,7 @@ x.get('c', 2); // Returns 2
 
 <hr>
 
-### `reactiveObj.equals(keyPath, value)`
+### `reactiveObj.equals([keyPath], value)`
 
 Returns true if the object's property specified by the keypath is equals to
 the `value` or false if otherwise. Establishes a reactive dependency which is
@@ -123,7 +127,7 @@ invalidated only when the property changes to and from the value.
 
 <hr>
 
-### `reactiveObj.set(keyPath, value)`
+### `reactiveObj.set([keyPath], value)`
 
 Replaces the object's property specified by the keypath and returns the
 `reactiveObj` that can be used for chaining. Properties that do not exist will
@@ -144,7 +148,7 @@ x.get('a'); // Returns {b: 1}
 
 <hr>
 
-### `reactiveObj.setDefault(keyPath, valueIfNotSet)`
+### `reactiveObj.setDefault([keyPath], valueIfNotSet)`
 
 Sets the object's property specified by the keypath if it hasn't been set
 before and returns the `reactiveObj` that can be used for chaining.  Keys in
@@ -153,15 +157,23 @@ the keypath that do not exist will be created.
 - `keyPath` *String* or *Array of String*
 - `valueIfNotSet` *Any*
 
+Example:
+```javascript
+var x = new ReactiveObj({a: 20});
+x.setDefault('a', 1)
+.setDefault('b', 2);
+x.get(); // Returns {a: 20, b: 2}
+```
+
 <hr>
 
 ### `reactiveObj.update(keyPath, [valueIfNotSet], updater)`
 
-Update the value at this keypath with the return value of calling `updater`
-with the existing value or `valueIfNotSet` if the key was not set.
+Update the value at this keypath with the return value of calling `updater`.
+`updater` is called with its value or `valueIfNotSet` if the key was not set.
 
 - `keyPath` *String* or *Array of String*
-- `valueIfNotSet` *Any*
+- `valueIfNotSet` *Any* (default=undefined)
 - `updater` *Function*
 
 Beware of mutating the returned value as it changes the stored object without
@@ -183,11 +195,11 @@ x.get('b'); // Returns 0
 
 ### `reactiveObj.forceInvalidate(keyPath, [options])`
 
-Invalidate reactive dependents on the value and its children specified by
-the keypath. You will need to call this if you mutate values returned by `get`
-or `update` directly. By default, this will only invalidate values which are
-instances of `Object` like arrays, objects and functions. You can override
-this behavior in `options`.
+Invalidate reactive dependents on the value specified by the keypath. You will
+need to call this if you mutate values returned by `get` or `update` directly.
+By default, this will only invalidate values which are instances of `Object`
+like arrays, objects and functions. You can override this behavior in
+`options`.
 
 - `keyPath` *String* or *Array of String*
 - `options` *Object*
@@ -212,6 +224,49 @@ var print = Tracker.autorun(function () {
 state.get().a = 2;
 state.get('a'); // Returns 1
 state.forceInvalidate(); // Prints 2
+```
+## Experimental Features
+
+### `reactiveObj[ArrayMethod](keyPath, methodArgs...)`
+
+Applys a native array method on the value specified by the keypath and returns
+the result. Throws an error if the value is not an array.
+
+- `ArrayMethod` *String*
+  - Supported methods: `push`, `pop`, `reverse`, `shift`, `sort`, `splice`,
+  `unshift`
+- `keyPath` *String* or *Array of String*
+- `methodArgs` *Any*
+  - Comma separated arguments for passing to the array method
+
+Example:
+```javascript
+var state = new ReactiveObj({a: []});
+state.push('a', 'foo'); // Returns 1
+state.push('a', 'bar'); // Returns 2
+state.get('a'); // Returns ['foo', 'bar']
+```
+
+<hr>
+
+### `reactiveObj.select(keyPath)`
+
+Saves the given keyPath and returns a `cursor`. This provides convenience to
+access deep paths repeatedly. API methods of `reactiveObj` work on a `cursor`
+similarly.
+
+- `keyPath` *String* or *Array of String*
+
+Example:
+```javascript
+var state = new ReactiveObj({users: {alice: {}}});
+var users = state.select('users');
+var alice = users.select('alice');
+alice.set('messages', []);
+alice.push('messages', 'Hello'); // Returns 1
+alice.push('messages', 'World'); // Returns 2
+alice.get(); // Returns {messages: ['Hello', 'World']}
+users.get(); // Returns {alice: {messages: ['Hello', 'World']}}
 ```
 
 ## Discussion

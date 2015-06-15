@@ -1,5 +1,3 @@
-var NOTSET = {};
-
 ReactiveObj = function (initialValue, options) {
   var self = this;
   self._obj = typeof initialValue === 'object' ? initialValue : {};
@@ -190,6 +188,10 @@ _.extend(ReactiveObj.prototype, {
   },
 
   equals: function (keyPath, value) {
+    if (arguments.length === 1) {
+      value = keyPath;
+      keyPath = [];
+    }
     return value === this._get(keyPath, {
       equals: value,
       valIfNotSet: undefined,
@@ -198,9 +200,12 @@ _.extend(ReactiveObj.prototype, {
   },
 
   set: function (keyPath, value) {
+    if (arguments.length === 1) {
+      value = keyPath;
+      keyPath = [];
+    }
     var self = this;
     var newState, noop;
-    if (arguments.length < 2) throw new Error("No value to set");
     keyPath = self._matchKeyPath(keyPath);
 
     // Replace root node
@@ -222,26 +227,22 @@ _.extend(ReactiveObj.prototype, {
 
   update: function (keyPath, valIfNotSet, updater) {
     var self = this;
-    var useNotSetVal = true;
     var write = {};
     var oldVal, newVal;
     keyPath = self._matchKeyPath(keyPath);
     if (arguments.length < 2) throw new Error('Insufficient arguments');
     else if (arguments.length === 2) {
       updater = valIfNotSet;
-      useNotSetVal = false;
+      valIfNotSet = undefined;
     }
     if (typeof updater !== 'function')
       throw new Error('Invalid or missing updater function');
 
     oldVal = self._visitPath(self._obj, keyPath);
-    if (oldVal === NOTSET) {
-      if (useNotSetVal) write.value = valIfNotSet;
-    }
-    else {
-      newVal = updater(self._transform ? self._transform(oldVal) : oldVal);
-      if (oldVal !== newVal) write.value = newVal;
-    }
+    if (oldVal === NOTSET) oldVal = valIfNotSet;
+
+    newVal = updater(self._transform ? self._transform(oldVal) : oldVal);
+    if (oldVal !== newVal) write.value = newVal;
 
     if ('value' in write) {
       self._obj = self._copyOnWrite(self._obj, keyPath, write.value);
@@ -252,6 +253,10 @@ _.extend(ReactiveObj.prototype, {
   },
 
   setDefault: function (keyPath, valIfNotSet) {
+    if (arguments.length === 1) {
+      valIfNotSet = keyPath;
+      keyPath = [];
+    }
     var self = this;
     var value = Tracker.nonreactive(function () {
       return self.get(keyPath, NOTSET);
@@ -259,6 +264,10 @@ _.extend(ReactiveObj.prototype, {
     if (value === NOTSET) self.set(keyPath, valIfNotSet);
 
     return self;
+  },
+
+  select: function (keyPath) {
+    return new Cursor(this, this._matchKeyPath(keyPath));
   },
 
   // Breadth first traversal
@@ -291,20 +300,26 @@ _.extend(ReactiveObj.prototype, {
   },
 
   forceInvalidate: function (keyPath, options) {
+    if (arguments.length === 1) {
+      options = keyPath;
+      keyPath = [];
+    }
     var self = this;
     var path, lastNode;
     keyPath = self._matchKeyPath(keyPath);
-    path = self._keyPathToDepPath(keyPath);
     options = options || {};
     _.defaults(options, {
       allType: false,
       noChildren: false
     });
 
-    self._visitPath(self._deps, path, function (context) {
-      self._resetDeps(context.node.deps, options.allTypes);
-      lastNode = context.node;
-    });
+    for (var i=0, l=keyPath.length; i<=l; i+=1) {
+      path = self._keyPathToDepPath(keyPath.slice(0, i));
+      self._visitPath(self._deps, path, function (context) {
+        self._resetDeps(context.node.deps, options.allTypes);
+        lastNode = context.node;
+      });
+    }
 
     if (!options.noChildren && lastNode)
       self._traverse(lastNode, function (nodeDes) {
@@ -434,4 +449,4 @@ _.extend(ReactiveObj.prototype, {
     else if (!(keyPath instanceof Array)) keyPath = [];
     self._willInvalidate.push(keyPath);
   }
-});
+}, ArrayMethods);
