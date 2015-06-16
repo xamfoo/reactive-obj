@@ -188,7 +188,7 @@ var inc = function (v) { return v + 1; };
 x.update('a', inc);
 x.update('b', 0, inc);
 x.get('a'); // Returns 2
-x.get('b'); // Returns 0
+x.get('b'); // Returns 1
 ```
 
 <hr>
